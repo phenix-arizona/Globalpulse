@@ -1,0 +1,37 @@
+# ─────────────────────────────────────────────────────────
+#  Kenya News Bot v3 — Render Deployment Config
+#  Telegram is always active via long-polling.
+#  WhatsApp activates automatically when WA_ vars are set.
+# ─────────────────────────────────────────────────────────
+
+services:
+  - type: web
+    name: kenya-news-bot
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: RUN_ON_START
+        value: false
+
+      # Telegram (required)
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+
+      # WhatsApp (optional — add later when Facebook account is ready)
+      - key: WA_PHONE_NUMBER_ID
+        sync: false
+      - key: WA_ACCESS_TOKEN
+        sync: false
+      - key: WA_RECIPIENT_PHONE
+        sync: false
+      - key: WA_VERIFY_TOKEN
+        sync: false
