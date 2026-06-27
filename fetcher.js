@@ -1,51 +1,38 @@
 // ─────────────────────────────────────────────────────────
-//  GlobalPulse Bot — Fetcher v6
-//  Uses axios (handles gzip/deflate automatically) + rss-parser
+//  GlobalPulse Bot — Fetcher v7
+//  Uses fast-xml-parser to handle RSS 1/2 + Atom natively.
+//  No more "Feed not recognized" — we parse XML ourselves.
 // ─────────────────────────────────────────────────────────
 
-const Parser = require('rss-parser');
 const axios  = require('axios');
+const { XMLParser } = require('fast-xml-parser');
 const { FEEDS } = require('./feeds');
 
 const TIMEOUT = 15000;
 const UA      = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-// One parser instance, shared — increase listener limit to suppress warning
-const parser = new Parser({
-  timeout: TIMEOUT,
-  headers: { 'User-Agent': UA },
-  xml2js: {
-    strict: false,
-    normalize: true,
-    normalizeTags: false,
-    explicitArray: false,
-    mergeAttrs: true,
-  },
-  customFields: {
-    item: [
-      ['content:encoded', 'contentEncoded'],
-      ['media:content',   'media'],
-      ['dc:date',         'dcDate'],
-      ['summary',         'atomSummary'],
-      ['content',         'atomContent'],
-    ],
-  },
+const xmlParser = new XMLParser({
+  ignoreAttributes:        false,
+  attributeNamePrefix:     '@_',
+  allowBooleanAttributes:  true,
+  parseAttributeValue:     false,
+  trimValues:              true,
+  parseTagValue:           true,
+  cdataPropName:           '__cdata',
+  isArray: (name) => ['item', 'entry', 'link'].includes(name),
 });
-// Prevent MaxListenersExceededWarning when 60 feeds parse concurrently
-parser.setMaxListeners && parser.setMaxListeners(100);
 
-/** Fetch URL with axios — auto-decompresses gzip/deflate/br */
+/** Download raw XML/HTML from a URL */
 async function fetchXml(url) {
   const res = await axios.get(url, {
     timeout: TIMEOUT,
     responseType: 'text',
-    decompress: true,           // axios handles gzip/deflate automatically
+    decompress: true,
     maxRedirects: 5,
     headers: {
       'User-Agent': UA,
       'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
       'Accept-Encoding': 'gzip, deflate, br',
-      'Accept-Language': 'en-US,en;q=0.9',
       'Cache-Control': 'no-cache',
     },
     httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }),
@@ -53,58 +40,113 @@ async function fetchXml(url) {
   return res.data;
 }
 
-function extractSummary(item) {
-  for (const key of ['contentSnippet','atomSummary','summary','atomContent','contentEncoded','description']) {
-    const v = item[key];
-    if (v && typeof v === 'string' && v.length > 20) {
-      return v.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
-    }
+/** Extract text from a value that might be a string, object with __cdata, or object with #text */
+function text(val) {
+  if (!val) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'number') return String(val);
+  if (val.__cdata) return val.__cdata;
+  if (val['#text']) return val['#text'];
+  if (typeof val === 'object') {
+    // Some feeds wrap text in extra object
+    const v = Object.values(val)[0];
+    return v ? String(v) : '';
   }
   return '';
 }
 
-function extractDate(item) {
-  const raw = item.pubDate || item.isoDate || item.dcDate || item.updated || item.published;
+/** Extract href from an Atom <link> element */
+function linkHref(linkVal) {
+  if (!linkVal) return '';
+  if (typeof linkVal === 'string') return linkVal;
+  if (Array.isArray(linkVal)) {
+    const alt = linkVal.find(l => !l['@_rel'] || l['@_rel'] === 'alternate');
+    return alt?.['@_href'] || linkVal[0]?.['@_href'] || '';
+  }
+  return linkVal['@_href'] || text(linkVal) || '';
+}
+
+/** Strip HTML tags and clean whitespace */
+function stripHtml(str = '') {
+  return str.replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Extract best summary from an item/entry */
+function extractSummary(item) {
+  const candidates = [
+    item['content:encoded'],
+    item.content,
+    item.summary,
+    item.description,
+    item['media:description'],
+  ];
+  for (const c of candidates) {
+    const s = stripHtml(text(c));
+    if (s.length > 30) return s.slice(0, 300);
+  }
+  return '';
+}
+
+/** Parse a date string safely */
+function parseDate(raw) {
   if (!raw) return new Date();
-  const d = new Date(raw);
+  const d = new Date(text(raw));
   return isNaN(d.getTime()) ? new Date() : d;
 }
 
-function extractLink(item) {
-  if (typeof item.link === 'string' && item.link.startsWith('http')) return item.link;
-  if (item.link?.href) return item.link.href;
-  if (Array.isArray(item.link)) {
-    const l = item.link.find(x => x?.rel === 'alternate' || !x?.rel);
-    if (l?.href) return l.href;
-  }
-  return item.guid || item.id || '';
+/** Parse RSS 2.0 / RSS 1.0 <item> elements */
+function parseRssItems(parsed, feed) {
+  const channel = parsed?.rss?.channel || parsed?.['rdf:RDF'] || {};
+  const items   = channel.item || [];
+  return items.map(item => ({
+    title:    stripHtml(text(item.title)).slice(0, 200),
+    link:     text(item.link) || text(item.guid) || '',
+    summary:  extractSummary(item),
+    pubDate:  parseDate(item.pubDate || item['dc:date'] || item.updated),
+    source:   feed.name,
+    category: feed.category,
+    region:   feed.region,
+  })).filter(a => a.title.length > 3);
 }
 
-function normalise(items, feed) {
-  return items
-    .filter(i => i.title && String(i.title).length > 3)
-    .map(item => ({
-      title:    String(item.title).replace(/<[^>]+>/g, '').trim(),
-      link:     extractLink(item),
-      summary:  extractSummary(item),
-      pubDate:  extractDate(item),
-      source:   feed.name,
-      category: feed.category,
-      region:   feed.region,
-    }));
+/** Parse Atom <entry> elements */
+function parseAtomEntries(parsed, feed) {
+  const feed2   = parsed?.feed || {};
+  const entries = feed2.entry || [];
+  return entries.map(entry => ({
+    title:    stripHtml(text(entry.title)).slice(0, 200),
+    link:     linkHref(entry.link) || text(entry.id) || '',
+    summary:  extractSummary(entry),
+    pubDate:  parseDate(entry.published || entry.updated),
+    source:   feed.name,
+    category: feed.category,
+    region:   feed.region,
+  })).filter(a => a.title.length > 3);
 }
 
 async function fetchFeed(feed) {
   try {
-    // Primary: fetch XML with axios then parse string (most reliable)
     const xml    = await fetchXml(feed.url);
-    const parsed = await parser.parseString(xml);
-    const items  = normalise(parsed.items || [], feed);
-    if (items.length > 0) return items;
+    const parsed = xmlParser.parse(xml);
 
-    // Fallback: let rss-parser fetch directly
-    const parsed2 = await parser.parseURL(feed.url);
-    return normalise(parsed2.items || [], feed);
+    // Detect feed type and parse accordingly
+    let items = [];
+
+    if (parsed?.feed?.entry) {
+      items = parseAtomEntries(parsed, feed);       // Atom
+    } else if (parsed?.rss?.channel?.item) {
+      items = parseRssItems(parsed, feed);          // RSS 2.0
+    } else if (parsed?.['rdf:RDF']) {
+      items = parseRssItems(parsed, feed);          // RSS 1.0
+    } else {
+      // Try both anyway
+      items = [...parseRssItems(parsed, feed), ...parseAtomEntries(parsed, feed)];
+    }
+
+    if (items.length === 0) {
+      console.warn(`⚠  [${feed.name}]: 0 items parsed`);
+    }
+    return items;
 
   } catch (err) {
     const msg = err.response?.status

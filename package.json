@@ -1,7 +1,7 @@
 {
-  "name": "kenya-news-aggregator",
-  "version": "2.0.0",
-  "description": "Kenya news WhatsApp bot — politics, tech, finance & investment alerts every 30 min",
+  "name": "globalpulse-bot",
+  "version": "5.0.0",
+  "description": "GlobalPulse — global news bot for Telegram & WhatsApp",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -12,6 +12,7 @@
     "axios": "^1.7.2",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "fast-xml-parser": "^4.4.0",
     "node-cron": "^3.0.3",
     "rss-parser": "^3.13.0"
   },

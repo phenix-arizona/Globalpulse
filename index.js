@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────
-//  Kenya News Bot v4.1 — Entry Point
+//  GlobalPulse Bot v5.0 — Entry Point
 //  Fix: Telegram 409 backoff | UA rotation for feeds
 // ─────────────────────────────────────────────────────────
 
@@ -165,7 +165,7 @@ cron.schedule('0 5 * * *', async () => {
 }, { timezone: 'Africa/Nairobi' });
 
 app.listen(PORT, () => {
-  console.log(`\n🇰🇪 Kenya News Bot v4.1 on port ${PORT}`);
+  console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
   console.log(`🌍 6 regions | 6 topics | Alerts every 30min | Digests 7AM+8AM EAT\n`);
 });
