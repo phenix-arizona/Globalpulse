@@ -55,6 +55,7 @@ const HELP_TEXT =
 /invest   — 📈 Investment
 /jobs     — 💼 Jobs
 /agri     — 🌾 Agriculture
+/edu      — 🎓 Education & Science
 
 /help — Show this menu`;
 
@@ -64,7 +65,7 @@ const REGION_CMDS = {
 };
 const TOPIC_CMDS = {
   '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
-  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri',
+  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/edu': 'education',
 };
 
 // 10-min article cache

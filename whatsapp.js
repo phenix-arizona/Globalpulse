@@ -15,6 +15,7 @@ const SECTION_META = {
   investment: { emoji: '📈', label: 'Investment & Markets'   },
   jobs:       { emoji: '💼', label: 'Jobs & Careers'         },
   agri:       { emoji: '🌾', label: 'Agriculture'            },
+  education:  { emoji: '🎓', label: 'Education & Science'   },
 };
 
 const MAX_PER_SECTION = 5;
