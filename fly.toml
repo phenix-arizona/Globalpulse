@@ -1,0 +1,26 @@
+# ─────────────────────────────────────────────────────────
+#  GlobalPulse Bot — Fly.io Deployment Config
+#  Free tier: 3 shared VMs, 256MB RAM, no expiry
+# ─────────────────────────────────────────────────────────
+
+app = "globalpulse-bot"
+primary_region = "jnb"  # Johannesburg — closest to Nairobi
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+  PORT = "8080"
+  RUN_ON_START = "false"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = false   # keep alive for cron jobs
+  auto_start_machines = true
+  min_machines_running = 1     # always one instance running
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

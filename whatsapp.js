@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────
-//  Kenya News Bot — WhatsApp Notifier  v4
+//  GlobalPulse Bot — WhatsApp Notifier  v5.0
+//  v5: expanded to 11 categories + 8 regions
 // ─────────────────────────────────────────────────────────
 
 require('dotenv').config();
@@ -9,13 +10,17 @@ const { WA_PHONE_NUMBER_ID, WA_ACCESS_TOKEN, WA_RECIPIENT_PHONE } = process.env;
 const API_URL = () => `https://graph.facebook.com/v19.0/${WA_PHONE_NUMBER_ID}/messages`;
 
 const SECTION_META = {
-  politics:   { emoji: '🏛️', label: 'Politics & Governance' },
-  finance:    { emoji: '💰', label: 'Finance & Economy'      },
-  technology: { emoji: '💻', label: 'Technology'             },
-  investment: { emoji: '📈', label: 'Investment & Markets'   },
-  jobs:       { emoji: '💼', label: 'Jobs & Careers'         },
-  agri:       { emoji: '🌾', label: 'Agriculture'            },
-  education:  { emoji: '🎓', label: 'Education & Science'   },
+  politics:    { emoji: '🏛️',  label: 'Politics & Governance'   },
+  technology:  { emoji: '💻',  label: 'Technology'               },
+  innovation:  { emoji: '🚀',  label: 'Innovation & R&D'         },
+  business:    { emoji: '💼',  label: 'Business & Companies'     },
+  agriculture: { emoji: '🌾',  label: 'Agriculture & Food'       },
+  education:   { emoji: '🎓',  label: 'Education'                },
+  startup:     { emoji: '🌱',  label: 'Startups & Funding'       },
+  research:    { emoji: '🔬',  label: 'Research & Science'       },
+  finance:     { emoji: '💰',  label: 'Finance & Economy'        },
+  investment:  { emoji: '📈',  label: 'Investment & Markets'     },
+  jobs:        { emoji: '🗂️',  label: 'Jobs & Careers'           },
 };
 
 const MAX_PER_SECTION = 5;

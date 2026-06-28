@@ -1,6 +1,7 @@
 // ─────────────────────────────────────────────────────────
-//  Kenya News Bot — Telegram Notifier  v4.1
+//  GlobalPulse Bot — Telegram Notifier  v5.0
 //  409 fix: exponential backoff + conflict detection
+//  v5: expanded to 11 categories + 8 regions
 // ─────────────────────────────────────────────────────────
 
 require('dotenv').config();
@@ -11,13 +12,17 @@ const CHAT_ID   = process.env.TELEGRAM_CHAT_ID;
 const BASE_URL  = () => `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 const SECTION_META = {
-  politics:   { emoji: '🏛️', label: 'Politics & Governance' },
-  finance:    { emoji: '💰', label: 'Finance & Economy'      },
-  technology: { emoji: '💻', label: 'Technology'             },
-  investment: { emoji: '📈', label: 'Investment & Markets'   },
-  jobs:       { emoji: '💼', label: 'Jobs & Careers'         },
-  agri:       { emoji: '🌾', label: 'Agriculture'            },
-  education:  { emoji: '🎓', label: 'Education & Science'   },
+  politics:    { emoji: '🏛️',  label: 'Politics & Governance'   },
+  technology:  { emoji: '💻',  label: 'Technology'               },
+  innovation:  { emoji: '🚀',  label: 'Innovation & R&D'         },
+  business:    { emoji: '💼',  label: 'Business & Companies'     },
+  agriculture: { emoji: '🌾',  label: 'Agriculture & Food'       },
+  education:   { emoji: '🎓',  label: 'Education'                },
+  startup:     { emoji: '🌱',  label: 'Startups & Funding'       },
+  research:    { emoji: '🔬',  label: 'Research & Science'       },
+  finance:     { emoji: '💰',  label: 'Finance & Economy'        },
+  investment:  { emoji: '📈',  label: 'Investment & Markets'     },
+  jobs:        { emoji: '🗂️',  label: 'Jobs & Careers'           },
 };
 
 const MAX_PER_SECTION = 5;
@@ -57,10 +62,10 @@ function formatArticle(i, a) {
 
 async function sendDigest(categorised, chatId = CHAT_ID, regionLabel = null) {
   const now   = new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi', dateStyle: 'full', timeStyle: 'short' });
-  const total = Object.values(categorised).reduce((n, arr) => n + arr.length, 0);
+  const total = Object.values(categorised).reduce((n, arr) => n + (arr || []).length, 0);
   if (total === 0) { console.log('ℹ  [TG] No articles.'); return; }
 
-  const title  = regionLabel ? `${regionLabel} News Digest` : '🇰🇪 Kenya News Digest';
+  const title  = regionLabel ? `${regionLabel} News Digest` : '🌐 GlobalPulse Digest';
   let current  = `<b>${title}</b>\n${now}\n${total} stories\n${'─'.repeat(30)}\n`;
   const chunks = [];
 
@@ -100,10 +105,6 @@ async function sendAlert(article, category, chatId = CHAT_ID) {
   }
 }
 
-/**
- * Long-poll with exponential backoff on errors.
- * 409 = another instance is polling → wait longer before retrying.
- */
 async function pollCommands(offset = 0, onCommand) {
   try {
     const res = await axios.get(`${BASE_URL()}/getUpdates`, {
@@ -115,21 +116,16 @@ async function pollCommands(offset = 0, onCommand) {
       if (msg?.text) await onCommand(String(msg.chat.id), msg.text.trim());
       offset = update.update_id + 1;
     }
-    return { offset, backoff: 0 }; // success — reset backoff
+    return { offset, backoff: 0 };
   } catch (err) {
     const status = err.response?.status;
     const desc   = err.response?.data?.description || err.message;
-
     if (status === 409) {
-      // Conflict: another poller is active — back off aggressively
       console.warn('⚠  TG 409: duplicate poller detected — backing off');
-      return { offset, backoff: 30000 }; // wait 30s before next poll
+      return { offset, backoff: 30000 };
     }
-
-    if (!desc.includes('timeout')) {
-      console.error(`❌ TG poll: ${desc}`);
-    }
-    return { offset, backoff: 3000 }; // generic error — wait 3s
+    if (!desc.includes('timeout')) console.error(`❌ TG poll: ${desc}`);
+    return { offset, backoff: 3000 };
   }
 }
 

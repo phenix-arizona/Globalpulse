@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────
-//  GlobalPulse Bot v5.0 — Entry Point
-//  Fix: Telegram 409 backoff | UA rotation for feeds
+//  GlobalPulse Bot v6.0 — Entry Point
+//  Regions  : kenya, africa, usa, europe, china, japan, korea, world
+//  Topics   : politics, tech, innovation, business, agri,
+//             education, startup, research, finance, invest, jobs
 // ─────────────────────────────────────────────────────────
 
 require('dotenv').config();
@@ -37,38 +39,59 @@ app.post('/webhook', async (req, res) => {
 
 // ── Help text ─────────────────────────────────────────────
 const HELP_TEXT =
-`🇰🇪 <b>Kenya News Bot — Commands</b>
+`🌐 <b>GlobalPulse Bot v6 — Commands</b>
 
 <b>📍 By Region</b>
 /kenya   — 🇰🇪 Kenya
+/africa  — 🌍 Africa
 /usa     — 🇺🇸 USA
+/europe  — 🇪🇺 Europe
 /china   — 🇨🇳 China
-/russia  — 🇷🇺 Russia
+/japan   — 🇯🇵 Japan
 /korea   — 🇰🇷 South Korea
-/eu      — 🇪🇺 Europe
-/world   — 🌍 All regions
+/world   — 🌐 All Regions
 
 <b>📂 By Topic</b>
-/politics — 🏛️ Politics
-/finance  — 💰 Finance
-/tech     — 💻 Technology
-/invest   — 📈 Investment
-/jobs     — 💼 Jobs
-/agri     — 🌾 Agriculture
-/edu      — 🎓 Education & Science
+/politics   — 🏛️ Politics & Governance
+/tech       — 💻 Technology
+/innovation — 🚀 Innovation & R&D
+/business   — 💼 Business & Companies
+/agri       — 🌾 Agriculture & Food
+/edu        — 🎓 Education
+/startup    — 🌱 Startups & Funding
+/research   — 🔬 Research & Science
+/finance    — 💰 Finance & Economy
+/invest     — 📈 Investment & Markets
+/jobs       — 🗂️ Jobs & Careers
 
 /help — Show this menu`;
 
+// ── Region & Topic command maps ───────────────────────────
 const REGION_CMDS = {
-  '/kenya': 'kenya', '/usa': 'usa', '/china': 'china',
-  '/russia': 'russia', '/korea': 'korea', '/eu': 'eu',
-};
-const TOPIC_CMDS = {
-  '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
-  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/edu': 'education',
+  '/kenya':  'kenya',
+  '/africa': 'africa',
+  '/usa':    'usa',
+  '/europe': 'europe',
+  '/china':  'china',
+  '/japan':  'japan',
+  '/korea':  'korea',
 };
 
-// 10-min article cache
+const TOPIC_CMDS = {
+  '/politics':   'politics',
+  '/tech':       'technology',
+  '/innovation': 'innovation',
+  '/business':   'business',
+  '/agri':       'agriculture',
+  '/edu':        'education',
+  '/startup':    'startup',
+  '/research':   'research',
+  '/finance':    'finance',
+  '/invest':     'investment',
+  '/jobs':       'jobs',
+};
+
+// ── 10-min article cache ──────────────────────────────────
 let _cache = null, _cacheTime = 0;
 async function getArticles() {
   if (_cache && Date.now() - _cacheTime < 10 * 60 * 1000) return _cache;
@@ -101,7 +124,7 @@ async function handleCommand(text, tgChatId = null, waPhone = null) {
     case '/start':
     case '/world': {
       const filtered = filterArticles(await getArticles());
-      await broadcastDigest(filtered, tgChatId, waPhone, '🌍 World');
+      await broadcastDigest(filtered, tgChatId, waPhone, '🌐 Global');
       break;
     }
     default:
@@ -120,7 +143,6 @@ async function telegramLoop() {
     if (backoff > 0) await new Promise(r => setTimeout(r, backoff));
   }
 }
-// Don't crash on 409 — just keep looping with backoff
 telegramLoop().catch(err => console.error('❌ TG loop:', err.message));
 
 // ── 30-min Kenya alerts ───────────────────────────────────
@@ -142,7 +164,7 @@ cron.schedule('*/30 * * * *', async () => {
   } catch (err) { console.error('❌ Poll failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
-// ── 7:00 AM EAT — Kenya digest ────────────────────────────
+// ── 7:00 AM EAT — Kenya + Africa digest ──────────────────
 cron.schedule('0 4 * * *', async () => {
   console.log('\n📰 Daily Kenya digest...');
   try {
@@ -153,22 +175,54 @@ cron.schedule('0 4 * * *', async () => {
   } catch (err) { console.error('❌ Kenya digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
-// ── 8:00 AM EAT — Global Tech & Finance ──────────────────
+// ── 7:30 AM EAT — Africa digest ──────────────────────────
+cron.schedule('30 4 * * *', async () => {
+  console.log('\n📰 Daily Africa digest...');
+  try {
+    const filtered = filterArticles(await getArticles(), 'africa');
+    await broadcastDigest(filtered, null, null, '🌍 Africa');
+  } catch (err) { console.error('❌ Africa digest failed:', err.message); }
+}, { timezone: 'Africa/Nairobi' });
+
+// ── 8:00 AM EAT — Global Tech, Innovation & Business ─────
 cron.schedule('0 5 * * *', async () => {
-  console.log('\n🌍 Daily global digest...');
+  console.log('\n🌐 Daily global digest...');
   try {
     const filtered = filterArticles(await getArticles());
     await broadcastDigest(
-      { technology: filtered.technology, finance: filtered.finance },
-      null, null, '🌍 Global Tech & Finance'
+      {
+        technology:  filtered.technology,
+        innovation:  filtered.innovation,
+        business:    filtered.business,
+        startup:     filtered.startup,
+        research:    filtered.research,
+      },
+      null, null, '🌐 Global Tech & Business'
     );
   } catch (err) { console.error('❌ Global digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
+// ── 9:00 AM EAT — Weekly deep reports (Mon only) ─────────
+cron.schedule('0 6 * * 1', async () => {
+  console.log('\n📊 Weekly reports digest (Monday)...');
+  try {
+    const filtered = filterArticles(await getArticles());
+    await broadcastDigest(
+      {
+        research:    filtered.research,
+        business:    filtered.business,
+        agriculture: filtered.agriculture,
+        education:   filtered.education,
+      },
+      null, null, '📊 Weekly Reports & Research'
+    );
+  } catch (err) { console.error('❌ Weekly reports failed:', err.message); }
+}, { timezone: 'Africa/Nairobi' });
+
 app.listen(PORT, () => {
-  console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
+  console.log(`\n🌐 GlobalPulse Bot v6.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 6 regions | 6 topics | Alerts every 30min | Digests 7AM+8AM EAT\n`);
+  console.log(`🗺  8 regions | 11 topics | Alerts every 30min | Digests 7AM/7:30AM/8AM/9AM(Mon) EAT\n`);
 });
 
 if (process.env.RUN_ON_START === 'true') {
