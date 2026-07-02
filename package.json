@@ -1,7 +1,7 @@
 {
   "name": "globalpulse-bot",
-  "version": "6.0.0",
-  "description": "GlobalPulse \u2014 8-region 11-topic news bot for Telegram & WhatsApp",
+  "version": "5.0.0",
+  "description": "GlobalPulse — global news bot for Telegram & WhatsApp",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
