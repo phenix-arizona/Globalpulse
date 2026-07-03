@@ -155,12 +155,12 @@ async function fetchAllFeeds() {
   const skipped     = fulfilled.filter(r => r.skipped).length;
   const working     = fulfilled.filter(r => !r.skipped && r.items.length > 0).length;
 
-  const cutoff  = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const recent  = all.filter(a => a.pubDate >= cutoff);
-
-  console.log(`📰 ${recent.length} articles (24h) | ${working}/${FEEDS.length} feeds OK` +
+  // No blanket recency cutoff here — different categories need different
+  // shelf lives (breaking news vs. a job/tender listing that's still open
+  // a week later). filterArticles() applies the right window per category.
+  console.log(`📰 ${all.length} articles fetched | ${working}/${FEEDS.length} feeds OK` +
     (skipped > 0 ? ` | ${skipped} paused (auto-disabled)` : ''));
-  return recent;
+  return all;
 }
 
 module.exports = { fetchAllFeeds };

@@ -23,6 +23,8 @@ const FEEDS = [
   { name: 'Disrupt Africa',         url: 'https://disrupt-africa.com/feed/',                        category: 'technology', region: 'kenya'   },
   { name: 'IT News Africa',         url: 'https://www.itnewsafrica.com/feed/',                      category: 'technology', region: 'kenya'   },
   { name: 'JobWebKenya',            url: 'https://www.jobwebkenya.com/feed/',                       category: 'jobs',       region: 'kenya'   },
+  { name: 'Corporate Staffing Kenya', url: 'https://www.corporatestaffing.co.ke/feed/',              category: 'jobs',       region: 'kenya'   },
+  { name: 'Opportunity Desk',       url: 'https://opportunitydesk.org/feed/',                        category: 'jobs',       region: 'kenya'   },
   { name: 'ReliefWeb Jobs KE',      url: 'https://reliefweb.int/jobs/rss.xml?primary_country=KE',  category: 'jobs',       region: 'kenya'   },
   { name: 'FarmBiz Africa',         url: 'https://farmbizafrica.com/feed/',                         category: 'agri',       region: 'kenya'   },
 
@@ -174,6 +176,11 @@ const FEEDS = [
   { name: 'The Conversation',       url: 'https://theconversation.com/global/articles.atom',        category: 'education',  region: 'global'  },
   { name: 'Big Think',              url: 'https://bigthink.com/feed/',                              category: 'education',  region: 'global'  },
   { name: 'TED Ideas',              url: 'https://feeds.feedburner.com/tedtalks_video',             category: 'education',  region: 'global'  },
+  { name: 'WHO News',               url: 'https://www.who.int/rss-feeds/news-english.xml',          category: 'health',     region: 'global'  },
+  { name: 'Medical Xpress',         url: 'https://medicalxpress.com/rss-feed/',                     category: 'health',     region: 'global'  },
+  { name: 'STAT News',              url: 'https://www.statnews.com/feed/',                          category: 'health',     region: 'usa'     },
+  { name: 'KFF Health News',        url: 'https://kffhealthnews.org/feed/',                         category: 'health',     region: 'usa'     },
+  { name: 'Africa CDC',             url: 'https://africacdc.org/feed/',                             category: 'health',     region: 'africa'  },
   { name: 'FAO',                    url: 'https://www.fao.org/news/rss-feed/en/',                   category: 'agri',       region: 'global'  },
   { name: 'ReliefWeb Jobs',         url: 'https://reliefweb.int/jobs/rss.xml',                      category: 'jobs',       region: 'global'  },
   { name: 'Crunchbase News',        url: 'https://news.crunchbase.com/feed/',                       category: 'startup',    region: 'global'  },
@@ -249,6 +256,15 @@ const KEYWORDS = {
     'e-learning','online course','STEM','literacy','EdTech',
     'vocational','exam','degree','PhD','discovery','innovation',
     'higher education','training','knowledge','learning',
+  ],
+  health: [
+    'health','healthcare','hospital','clinic','disease','outbreak',
+    'vaccine','vaccination','pandemic','epidemic','WHO','medicine',
+    'medical','doctor','nurse','patient','treatment','diagnosis',
+    'surgery','pharma','pharmaceutical','drug approval','clinical trial',
+    'mental health','maternal health','malaria','HIV','tuberculosis',
+    'cancer','diabetes','nutrition','public health','NHIF','SHA',
+    'insurance cover','biotech','telemedicine','health tech','epidemiology',
   ],
 };
 

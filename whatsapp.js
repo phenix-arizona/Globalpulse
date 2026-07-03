@@ -16,6 +16,7 @@ const SECTION_META = {
   jobs:       { emoji: '💼', label: 'Jobs & Careers'         },
   agri:       { emoji: '🌾', label: 'Agriculture'            },
   education:  { emoji: '🎓', label: 'Education & Science'   },
+  health:     { emoji: '🏥', label: 'Health & Medicine'      },
   startup:    { emoji: '🚀', label: 'Startups & Innovation'  },
   tenders:    { emoji: '📋', label: 'IT Tenders (Kenya)'      },
 };

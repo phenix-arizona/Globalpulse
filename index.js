@@ -38,35 +38,40 @@ app.post('/webhook', async (req, res) => {
 
 // ── Help text ─────────────────────────────────────────────
 const HELP_TEXT =
-`🇰🇪 <b>Kenya News Bot — Commands</b>
+`🌍 <b>GlobalPulse — Commands</b>
 
 <b>📍 By Region</b>
 /kenya   — 🇰🇪 Kenya
+/africa  — 🌍 Africa
 /usa     — 🇺🇸 USA
+/europe  — 🇪🇺 Europe
 /china   — 🇨🇳 China
-/russia  — 🇷🇺 Russia
+/japan   — 🇯🇵 Japan
 /korea   — 🇰🇷 South Korea
-/eu      — 🇪🇺 Europe
-/world   — 🌍 All regions
+/world   — 🌐 All regions
 
 <b>📂 By Topic</b>
-/politics — 🏛️ Politics
-/finance  — 💰 Finance
+/politics — 🏛️ Politics &amp; Governance
+/finance  — 💰 Finance &amp; Economy
 /tech     — 💻 Technology
-/invest   — 📈 Investment
-/jobs     — 💼 Jobs
+/invest   — 📈 Investment &amp; Markets
+/startup  — 🚀 Startups &amp; Innovation
+/jobs     — 💼 Jobs &amp; Careers
 /agri     — 🌾 Agriculture
-/edu      — 🎓 Education & Science
+/edu      — 🎓 Education &amp; Science
+/med      — 🏥 Health &amp; Medicine
+/tenders  — 📋 IT Tenders (Kenya)
 
 /help — Show this menu`;
 
 const REGION_CMDS = {
-  '/kenya': 'kenya', '/usa': 'usa', '/china': 'china',
-  '/russia': 'russia', '/korea': 'korea', '/eu': 'europe', '/europe': 'europe', '/africa': 'africa', '/japan': 'japan',
+  '/kenya': 'kenya', '/africa': 'africa', '/usa': 'usa',
+  '/europe': 'europe', '/eu': 'europe', '/china': 'china',
+  '/japan': 'japan', '/korea': 'korea',
 };
 const TOPIC_CMDS = {
   '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
-  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education',
+  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education', '/med': 'health',
 };
 
 // 10-min article cache
@@ -170,7 +175,7 @@ cron.schedule('0 5 * * *', async () => {
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 6 regions | 6 topics | Alerts every 30min | Digests 7AM+8AM EAT`);
+  console.log(`🌍 7 regions | 9 topics | Alerts every 30min | Digests 7AM+8AM EAT`);
   if (tracker.isPersistent()) {
     console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
   } else {

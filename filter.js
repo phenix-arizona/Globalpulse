@@ -10,19 +10,49 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'USDA News','FAO','AGRA News','Africa Feeds Agri','EU Agriculture (DW)',
   'ReliefWeb Jobs KE','ReliefWeb Jobs','ReliefWeb Jobs Africa',
   'JobWebKenya','UN Jobs Nairobi','Career Point Kenya',
+  'Corporate Staffing Kenya','Opportunity Desk',
   'Nature News','Science Daily','The Conversation','The Conversation EU',
   'TED Ideas','Smithsonian Magazine','Big Think','Harvard Business Review',
   'World Economic Forum','EdSurge','Education Week',
   'University World News Africa','University World News EU',
   'Research Africa','China Dialogue',
+  'WHO News','Medical Xpress','STAT News','KFF Health News','Africa CDC',
   'Disrupt Africa','Ventures Africa','WeeTracker','Crunchbase News',
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
 ]);
 
 const AGRI_TITLE  = ['farm','farmer','farming','crop','harvest','livestock','poultry','dairy','drought','irrigation','fertilizer','fertiliser','seed','food security','agribusiness','agrotech','maize','wheat','rice','coffee','horticulture','smallholder','agriculture','agricultural','agri','cereal','grain','pesticide','soil health','food production','famine','hunger','crop yield','land reform','food prices'];
-const JOB_TITLE   = ['job opening','job vacancy','vacancies','hiring','recruitment','career','internship','apply now','employment opportunity','remote job','freelance','contract role','job fair','layoff','retrenchment'];
+const JOB_TITLE = [
+  // General hiring
+  'job opening','job vacancy','vacancies','hiring','recruitment','career',
+  'apply now','employment opportunity','remote job','freelance',
+  'contract role','job fair','layoff','retrenchment','job advert',
+  'looking for','seeking applicants','now hiring','walk-in interview',
+
+  // Casual & temporary work
+  'casual job','casual jobs','casual labourer','casual labour','casual worker',
+  'temporary job','temporary position','part-time job','day labourer',
+  'gig work','odd jobs','manual labour','general worker',
+
+  // Internships & attachments
+  'internship','internships','industrial attachment','attachment opportunity',
+  'graduate trainee','graduate program','trainee program','apprenticeship',
+  'volunteer opportunity','national youth service',
+
+  // Government & public sector
+  'government job','government vacancy','civil service','public service job',
+  'county government job','ministry vacancy','parastatal vacancy',
+  'state department vacancy','county public service board','PSC recruitment',
+  'teachers service commission','TSC recruitment','NHIF vacancy','NSSF vacancy',
+
+  // Scholarships & funding
+  'scholarship','scholarships','bursary','bursaries','fully funded',
+  'fellowship','fellowships','grant opportunity','study abroad',
+  'exchange program','funded masters','funded phd','tuition waiver',
+];
 const EDU_TITLE   = ['education','school','university','college','research','scholarship','curriculum','professor','e-learning','online course','STEM','EdTech','vocational','PhD','discovery','academic'];
+const HEALTH_TITLE = ['health','hospital','clinic','disease','outbreak','vaccine','vaccination','pandemic','epidemic','WHO ','medicine','medical','doctor','nurse','patient','surgery','pharma','clinical trial','mental health','maternal health','malaria','HIV','tuberculosis','cancer','diabetes','nutrition','public health','NHIF','SHA ','biotech','telemedicine','epidemiology'];
 const START_TITLE = ['startup','founder','launch','seed funding','pre-seed','incubator','accelerator','pitch','MVP','product launch','scale-up','raise','funding round','entrepreneur','Y Combinator','Techstars','demo day'];
 
 // IT-specific tender keywords — narrows the broad "tender" feed to IT/tech tenders
@@ -66,6 +96,7 @@ function categorise(article) {
   if (titleMatches(title, AGRI_TITLE))   return 'agri';
   if (titleMatches(title, JOB_TITLE))    return 'jobs';
   if (titleMatches(title, EDU_TITLE))    return 'education';
+  if (titleMatches(title, HEALTH_TITLE)) return 'health';
 
   // Tenders: must mention tender/RFP AND be IT-related to qualify
   if (titleMatches(title, TENDER_TITLE) && titleMatches(combined, IT_TENDER_TITLE)) return 'tenders';
@@ -81,6 +112,30 @@ function categorise(article) {
   return article.category || null;
 }
 
+// Different content types have different useful "shelf lives".
+// Breaking news is stale within a day; a job or tender listing is
+// often still open a week later. Applying one blanket 24h cutoff
+// to everything was silently discarding valid job/tender listings
+// from feeds that don't republish daily (ReliefWeb, UN Jobs, etc.)
+// even though the fetch itself succeeded.
+const RECENCY_HOURS = {
+  jobs:       24 * 7,   // 7 days — listings stay open
+  tenders:    24 * 14,  // 14 days — tender deadlines are usually weeks out
+  agri:       24 * 3,   // 3 days
+  education:  24 * 5,   // 5 days — research/edu content ages slower
+  health:     24 * 3,   // 3 days — outbreak alerts age fast, research slower
+  startup:    24 * 3,   // 3 days
+  investment: 24 * 3,   // 3 days
+  // politics, technology, finance default to 24h (fast-moving news)
+};
+const DEFAULT_RECENCY_HOURS = 24;
+
+function withinWindow(article, category) {
+  const hours  = RECENCY_HOURS[category] ?? DEFAULT_RECENCY_HOURS;
+  const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
+  return article.pubDate >= cutoff;
+}
+
 function filterArticles(articles, region = null) {
   const source    = region
     ? articles.filter(a => a.region === region || a.region === 'global')
@@ -90,7 +145,9 @@ function filterArticles(articles, region = null) {
 
   for (const article of source) {
     const cat = categorise(article);
-    if (cat && validCats.has(cat)) buckets[cat].push(article);
+    if (cat && validCats.has(cat) && withinWindow(article, cat)) {
+      buckets[cat].push(article);
+    }
   }
 
   for (const cat of [...validCats]) {
