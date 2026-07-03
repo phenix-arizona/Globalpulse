@@ -20,6 +20,9 @@ const FEEDS = [
   { name: 'TechCabal',              url: 'https://techcabal.com/feed/',                             category: 'technology', region: 'kenya'   },
   { name: 'Techweez',               url: 'https://techweez.com/feed/',                           category: 'technology', region: 'kenya'   },
   { name: 'Techpoint Africa',        url: 'https://techpoint.africa/feed/',                       category: 'technology', region: 'kenya'   },
+  { name: 'Konza Technopolis',       url: 'https://www.konza.go.ke/feed/',                        category: 'technology', region: 'kenya'   },
+  { name: 'ICT Authority Kenya',     url: 'https://icta.go.ke/feed/',                             category: 'technology', region: 'kenya'   },
+  { name: 'Ajira Digital',           url: 'https://ajiradigital.go.ke/feed/',                     category: 'youth',      region: 'kenya'   },
   { name: 'Disrupt Africa',         url: 'https://disrupt-africa.com/feed/',                        category: 'technology', region: 'kenya'   },
   { name: 'IT News Africa',         url: 'https://www.itnewsafrica.com/feed/',                      category: 'technology', region: 'kenya'   },
   { name: 'JobWebKenya',            url: 'https://www.jobwebkenya.com/feed/',                       category: 'jobs',       region: 'kenya'   },
@@ -265,6 +268,15 @@ const KEYWORDS = {
     'mental health','maternal health','malaria','HIV','tuberculosis',
     'cancer','diabetes','nutrition','public health','NHIF','SHA',
     'insurance cover','biotech','telemedicine','health tech','epidemiology',
+  ],
+  youth: [
+    'youth','young people','youth affairs','youth empowerment',
+    'youth development','youth fund','youth employment','youth policy',
+    'youth entrepreneurship','youth program','youth initiative',
+    'National Youth Service','NYS','Ajira Digital','young innovators',
+    'young Kenyans','youth-led','Generation Z','Gen Z','youth council',
+    'young entrepreneurs','graduate unemployment','skills for youth',
+    'youth internship','youth training','young professionals',
   ],
 };
 

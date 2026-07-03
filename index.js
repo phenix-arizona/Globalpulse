@@ -60,6 +60,7 @@ const HELP_TEXT =
 /agri     — 🌾 Agriculture
 /edu      — 🎓 Education &amp; Science
 /med      — 🏥 Health &amp; Medicine
+/youth    — 🧑‍🎓 Youth Affairs &amp; Development
 /tenders  — 📋 IT Tenders (Kenya)
 
 /help — Show this menu`;
@@ -71,7 +72,7 @@ const REGION_CMDS = {
 };
 const TOPIC_CMDS = {
   '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
-  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education', '/med': 'health',
+  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education', '/med': 'health', '/youth': 'youth',
 };
 
 // 10-min article cache

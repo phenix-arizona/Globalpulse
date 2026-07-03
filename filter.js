@@ -17,6 +17,7 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'University World News Africa','University World News EU',
   'Research Africa','China Dialogue',
   'WHO News','Medical Xpress','STAT News','KFF Health News','Africa CDC',
+  'Konza Technopolis','ICT Authority Kenya','Ajira Digital',
   'Disrupt Africa','Ventures Africa','WeeTracker','Crunchbase News',
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
@@ -53,6 +54,7 @@ const JOB_TITLE = [
 ];
 const EDU_TITLE   = ['education','school','university','college','research','scholarship','curriculum','professor','e-learning','online course','STEM','EdTech','vocational','PhD','discovery','academic'];
 const HEALTH_TITLE = ['health','hospital','clinic','disease','outbreak','vaccine','vaccination','pandemic','epidemic','WHO ','medicine','medical','doctor','nurse','patient','surgery','pharma','clinical trial','mental health','maternal health','malaria','HIV','tuberculosis','cancer','diabetes','nutrition','public health','NHIF','SHA ','biotech','telemedicine','epidemiology'];
+const YOUTH_TITLE  = ['youth','young people','youth affairs','youth empowerment','youth development','youth fund','youth employment','youth policy','youth entrepreneurship','youth program','youth initiative','National Youth Service','NYS ','Ajira Digital','young innovators','young Kenyans','youth-led','youth council','young entrepreneurs','graduate unemployment','youth internship','youth training'];
 const START_TITLE = ['startup','founder','launch','seed funding','pre-seed','incubator','accelerator','pitch','MVP','product launch','scale-up','raise','funding round','entrepreneur','Y Combinator','Techstars','demo day'];
 
 // IT-specific tender keywords — narrows the broad "tender" feed to IT/tech tenders
@@ -97,6 +99,7 @@ function categorise(article) {
   if (titleMatches(title, JOB_TITLE))    return 'jobs';
   if (titleMatches(title, EDU_TITLE))    return 'education';
   if (titleMatches(title, HEALTH_TITLE)) return 'health';
+  if (titleMatches(title, YOUTH_TITLE))  return 'youth';
 
   // Tenders: must mention tender/RFP AND be IT-related to qualify
   if (titleMatches(title, TENDER_TITLE) && titleMatches(combined, IT_TENDER_TITLE)) return 'tenders';
@@ -124,6 +127,7 @@ const RECENCY_HOURS = {
   agri:       24 * 3,   // 3 days
   education:  24 * 5,   // 5 days — research/edu content ages slower
   health:     24 * 3,   // 3 days — outbreak alerts age fast, research slower
+  youth:      24 * 5,   // 5 days — programs/policy announcements age slower than news
   startup:    24 * 3,   // 3 days
   investment: 24 * 3,   // 3 days
   // politics, technology, finance default to 24h (fast-moving news)
