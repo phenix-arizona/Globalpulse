@@ -9,7 +9,7 @@ const cron    = require('node-cron');
 
 const { fetchAllFeeds }                  = require('./fetcher');
 const { filterArticles }                 = require('./filter');
-const { REGIONS }                        = require('./feeds');
+const { REGIONS, KEYWORDS }              = require('./feeds');
 const { pollCommands }                   = require('./telegram');
 const { verifyWebhook, parseInbound,
         isEnabled: waEnabled }           = require('./whatsapp');
@@ -175,7 +175,7 @@ cron.schedule('0 5 * * *', async () => {
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 7 regions | 9 topics | Alerts every 30min | Digests 7AM+8AM EAT`);
+  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Alerts every 30min | Digests 7AM+8AM EAT`);
   if (tracker.isPersistent()) {
     console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
   } else {
