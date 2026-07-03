@@ -6,6 +6,7 @@
 const axios  = require('axios');
 const { XMLParser } = require('fast-xml-parser');
 const { FEEDS, MAX_PER_SOURCE } = require('./feeds');
+const feedHealth = require('./feedHealth');
 
 const TIMEOUT = 15000;
 const UA      = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -18,6 +19,13 @@ const xmlParser = new XMLParser({
   trimValues:             true,
   cdataPropName:          '__cdata',
   isArray: (name) => ['item', 'entry', 'link'].includes(name),
+  // Large feeds (Guardian, CGTN, ReliefWeb) legitimately contain 1000+
+  // named entities (&amp; etc.) across many articles. fast-xml-parser's
+  // built-in entity expansion has a hard internal cap that rejects these
+  // as a potential XML-bomb attack. We disable its entity processing here
+  // and decode entities ourselves in stripHtml()/decodeEntities() below —
+  // that path has no such limit.
+  processEntities: false,
 });
 
 async function fetchXml(url) {
@@ -106,6 +114,11 @@ function normalise(items, feed) {
 }
 
 async function fetchFeed(feed) {
+  // Skip feeds that have been auto-paused after repeated failures
+  if (await feedHealth.isPaused(feed.name)) {
+    return { items: [], skipped: true };
+  }
+
   try {
     const xml    = await fetchXml(feed.url);
     const parsed = xmlParser.parse(xml);
@@ -115,23 +128,38 @@ async function fetchFeed(feed) {
     else if (parsed?.rss?.channel)    items = normalise([].concat(parsed.rss.channel.item || []), feed);
     else if (parsed?.['rdf:RDF'])     items = normalise([].concat(parsed['rdf:RDF'].item || []), feed);
 
-    if (items.length === 0) console.warn(`⚠  [${feed.name}]: 0 items`);
-    return items;
+    if (items.length === 0) {
+      console.warn(`⚠  [${feed.name}]: 0 items`);
+      const nowPaused = await feedHealth.recordFailure(feed.name);
+      if (nowPaused) console.warn(`⏸  [${feed.name}]: paused for 24h after repeated failures`);
+    } else {
+      await feedHealth.recordSuccess(feed.name);
+    }
+    return { items, skipped: false };
+
   } catch (err) {
     const msg = err.response?.status ? `HTTP ${err.response.status}` : err.message.split('\n')[0].slice(0, 60);
     console.warn(`⚠  [${feed.name}]: ${msg}`);
-    return [];
+    const nowPaused = await feedHealth.recordFailure(feed.name);
+    if (nowPaused) console.warn(`⏸  [${feed.name}]: paused for 24h after repeated failures`);
+    return { items: [], skipped: false };
   }
 }
 
 async function fetchAllFeeds() {
   console.log(`📡 Fetching from ${FEEDS.length} sources...`);
   const results  = await Promise.allSettled(FEEDS.map(fetchFeed));
-  const all      = results.filter(r => r.status === 'fulfilled').flatMap(r => r.value);
-  const cutoff   = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const recent   = all.filter(a => a.pubDate >= cutoff);
-  const working  = results.filter(r => r.status === 'fulfilled' && r.value.length > 0).length;
-  console.log(`📰 ${recent.length} articles (24h) | ${working}/${FEEDS.length} feeds OK`);
+
+  const fulfilled = results.filter(r => r.status === 'fulfilled').map(r => r.value);
+  const all        = fulfilled.flatMap(r => r.items);
+  const skipped     = fulfilled.filter(r => r.skipped).length;
+  const working     = fulfilled.filter(r => !r.skipped && r.items.length > 0).length;
+
+  const cutoff  = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const recent  = all.filter(a => a.pubDate >= cutoff);
+
+  console.log(`📰 ${recent.length} articles (24h) | ${working}/${FEEDS.length} feeds OK` +
+    (skipped > 0 ? ` | ${skipped} paused (auto-disabled)` : ''));
   return recent;
 }
 

@@ -75,7 +75,40 @@ Check your WhatsApp. If the digest arrives, you're ready to deploy.
 
 ---
 
-## 💬 Telegram Commands
+## 🔒 Reliability: Persistent Storage (recommended)
+
+By default the bot keeps two things in memory only:
+- **Dedup history** — which articles it's already alerted you about
+- **Feed health** — which sources have been failing repeatedly
+
+In-memory means both reset **every time the app redeploys or restarts** —
+you can get duplicate alerts, and dead feeds go back to being retried
+every 30 minutes instead of staying auto-paused.
+
+**Fix: connect a free Upstash Redis database (5 minutes, no credit card)**
+
+1. Go to [upstash.com](https://upstash.com) → sign up → **Create Database**
+2. Choose the **free tier** (10K commands/day is far more than this bot needs)
+3. On the database page, copy:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+4. Add both to your `.env` (or Railway/Fly environment variables)
+5. Redeploy — check `/health`, it should now show `"storage": "persistent (Upstash)"`
+
+No code changes needed — the bot detects these variables automatically
+and switches from in-memory to persistent storage on startup.
+
+### Feed auto-pause behaviour
+
+Any feed that fails **8 fetch cycles in a row** gets automatically paused
+for 24 hours instead of being retried every 30 minutes. This speeds up
+every fetch cycle and keeps logs clean. Paused feeds retry automatically
+after the 24h window — no manual action needed. Watch for this in logs:
+```
+⏸  [Kenya Tenders Portal]: paused for 24h after repeated failures
+```
+
+
 Send any of these to your bot:
 
 | Command | Response |

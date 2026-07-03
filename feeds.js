@@ -27,9 +27,6 @@ const FEEDS = [
   { name: 'FarmBiz Africa',         url: 'https://farmbizafrica.com/feed/',                         category: 'agri',       region: 'kenya'   },
 
   // Tenders (IT-focused)
-  { name: 'Kenya Tenders Portal',   url: 'https://tenders.go.ke/rss',                              category: 'tenders',    region: 'kenya'   },
-  { name: 'MyGov Kenya Tenders',    url: 'https://www.mygov.go.ke/feed/',                           category: 'tenders',    region: 'kenya'   },
-  { name: 'Tenders Direct Africa',  url: 'https://www.tendersinfo.com/rss-kenya-tenders.php',       category: 'tenders',    region: 'kenya'   },
 
   // ══════════════════════════════════════════════════════
   //  🌍  AFRICA (continental)
@@ -37,9 +34,6 @@ const FEEDS = [
 
   // Politics & General
   { name: 'AllAfrica',               url: 'https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf', category: 'general', region: 'africa' },
-  { name: 'Biz Community Africa',    url: 'https://www.bizcommunity.com/rss/196/19.rss',          category: 'finance',    region: 'africa'  },
-  { name: 'Biz Community Tech',      url: 'https://www.bizcommunity.com/rss/196/20.rss',          category: 'technology', region: 'africa'  },
-  { name: 'Biz Community Startup',   url: 'https://www.bizcommunity.com/rss/196/831.rss',         category: 'startup',    region: 'africa'  },
   { name: 'Africa News',            url: 'https://www.africanews.com/feed/',                        category: 'general',    region: 'africa'  },
   { name: 'The Africa Report',      url: 'https://www.theafricareport.com/feed/',                   category: 'general',    region: 'africa'  },
   { name: 'Mail & Guardian Africa', url: 'https://mg.co.za/feed/',                                  category: 'general',    region: 'africa'  },

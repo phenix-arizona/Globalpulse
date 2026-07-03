@@ -25,6 +25,7 @@ app.get('/health', (_req, res) => res.json({
   status: 'ok', time: new Date().toISOString(),
   telegram: !!process.env.TELEGRAM_BOT_TOKEN ? 'enabled' : 'missing',
   whatsapp: waEnabled() ? 'enabled' : 'disabled',
+  storage:  tracker.isPersistent() ? 'persistent (Upstash)' : 'in-memory (resets on redeploy)',
 }));
 
 app.get('/webhook',  (req, res) => waEnabled() ? verifyWebhook(req, res) : res.sendStatus(404));
@@ -132,13 +133,14 @@ cron.schedule('*/30 * * * *', async () => {
     const filtered = filterArticles(await getArticles(), 'kenya');
     let count = 0;
     for (const [cat, items] of Object.entries(filtered)) {
-      for (const article of tracker.filterNew(items)) {
+      const newOnes = await tracker.filterNew(items);
+      for (const article of newOnes) {
         await broadcastAlert(article, cat);
         await new Promise(r => setTimeout(r, 600));
         count++;
       }
     }
-    console.log(`   ✅ ${count} alerts | tracker: ${tracker.size}`);
+    console.log(`   ✅ ${count} alerts sent`);
   } catch (err) { console.error('❌ Poll failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
@@ -149,7 +151,7 @@ cron.schedule('0 4 * * *', async () => {
     _cache = null;
     const filtered = filterArticles(await getArticles(), 'kenya');
     await broadcastDigest(filtered, null, null, '🇰🇪 Kenya');
-    Object.values(filtered).flat().forEach(a => tracker.isNew(a));
+    await Promise.all(Object.values(filtered).flat().map(a => tracker.isNew(a)));
   } catch (err) { console.error('❌ Kenya digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
@@ -168,7 +170,14 @@ cron.schedule('0 5 * * *', async () => {
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 6 regions | 6 topics | Alerts every 30min | Digests 7AM+8AM EAT\n`);
+  console.log(`🌍 6 regions | 6 topics | Alerts every 30min | Digests 7AM+8AM EAT`);
+  if (tracker.isPersistent()) {
+    console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
+  } else {
+    console.log(`⚠️  Storage: in-memory only — dedup history and feed health`);
+    console.log(`   will reset on every redeploy. Set UPSTASH_REDIS_REST_URL`);
+    console.log(`   + UPSTASH_REDIS_REST_TOKEN in .env for persistence.\n`);
+  }
 });
 
 if (process.env.RUN_ON_START === 'true') {
