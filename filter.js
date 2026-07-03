@@ -136,18 +136,64 @@ function withinWindow(article, category) {
   return article.pubDate >= cutoff;
 }
 
-function filterArticles(articles, region = null) {
-  const source    = region
-    ? articles.filter(a => a.region === region || a.region === 'global')
-    : articles;
-  const validCats = new Set(Object.keys(KEYWORDS));
-  const buckets   = Object.fromEntries([...validCats].map(c => [c, []]));
+// Global job/tender boards (ReliefWeb, etc.) list postings from every
+// country. Letting them through unfiltered into a region-specific digest
+// means Sudan or Ukraine listings show up under "Kenya jobs" — not useful.
+// For these two categories only, a "global"-tagged article must actually
+// mention the requested region by name to qualify.
+const REGION_LOCALE_KEYWORDS = {
+  kenya:  ['kenya', 'nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret'],
+  africa: ['africa', 'african', 'nigeria', 'ghana', 'uganda', 'tanzania', 'rwanda', 'ethiopia', 'senegal', 'zambia', 'south africa'],
+  usa:    ['united states', 'u.s.', 'usa', 'america', 'washington'],
+  europe: ['europe', 'european union', 'brussels', 'germany', 'france', 'uk ', 'britain', 'spain', 'italy'],
+  china:  ['china', 'chinese', 'beijing', 'shanghai'],
+  japan:  ['japan', 'japanese', 'tokyo'],
+  korea:  ['korea', 'korean', 'seoul'],
+};
+const REGION_RESTRICTED_CATEGORIES = new Set(['jobs', 'tenders']);
 
-  for (const article of source) {
+function matchesRegion(article, regionList) {
+  if (!regionList) return true;
+  return regionList.includes(article.region) || article.region === 'global';
+}
+
+function mentionsRegionLocale(article, regionList) {
+  const haystack = `${article.title} ${article.summary}`.toLowerCase();
+  let hadAnyKeywordList = false;
+  for (const region of regionList) {
+    const keywords = REGION_LOCALE_KEYWORDS[region];
+    if (!keywords) continue;
+    hadAnyKeywordList = true;
+    if (keywords.some(kw => haystack.includes(kw))) return true;
+  }
+  return !hadAnyKeywordList; // no keyword lists defined at all — don't over-restrict
+}
+
+/**
+ * Filter + categorise articles.
+ * @param {Array}  articles
+ * @param {string|string[]} [region] - single region, or an array to
+ *   combine several (e.g. ['kenya','africa'] for Kenya's automated feed).
+ */
+function filterArticles(articles, region = null) {
+  const regionList = region ? (Array.isArray(region) ? region : [region]) : null;
+  const validCats   = new Set(Object.keys(KEYWORDS));
+  const buckets     = Object.fromEntries([...validCats].map(c => [c, []]));
+
+  for (const article of articles) {
+    if (!matchesRegion(article, regionList)) continue;
+
     const cat = categorise(article);
-    if (cat && validCats.has(cat) && withinWindow(article, cat)) {
-      buckets[cat].push(article);
+    if (!cat || !validCats.has(cat)) continue;
+    if (!withinWindow(article, cat)) continue;
+
+    // Global job/tender boards only qualify for a region's digest if the
+    // posting actually mentions one of the requested regions — otherwise skip it.
+    if (regionList && article.region === 'global' && REGION_RESTRICTED_CATEGORIES.has(cat)) {
+      if (!mentionsRegionLocale(article, regionList)) continue;
     }
+
+    buckets[cat].push(article);
   }
 
   for (const cat of [...validCats]) {

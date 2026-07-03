@@ -58,10 +58,28 @@ function linkHref(linkVal) {
   if (!linkVal) return '';
   if (typeof linkVal === 'string') return linkVal;
   if (Array.isArray(linkVal)) {
-    const alt = linkVal.find(l => !l['@_rel'] || l['@_rel'] === 'alternate');
-    return alt?.['@_href'] || linkVal[0]?.['@_href'] || '';
+    // Elements can be plain strings (RSS 2.0: <link>url</link>) or
+    // objects with an href attribute (Atom: <link href="url" rel="..."/>)
+    for (const l of linkVal) {
+      if (typeof l === 'string' && l.trim()) return l.trim();
+      if (l && typeof l === 'object') {
+        if (!l['@_rel'] || l['@_rel'] === 'alternate') {
+          if (l['@_href']) return l['@_href'];
+        }
+      }
+    }
+    // Fall back to first element's href even if rel didn't match "alternate"
+    const first = linkVal[0];
+    if (typeof first === 'string') return first.trim();
+    if (first?.['@_href']) return first['@_href'];
+    return '';
   }
   return linkVal['@_href'] || text(linkVal) || '';
+}
+
+/** Basic sanity check that a string looks like a usable URL */
+function isValidUrl(str) {
+  return typeof str === 'string' && /^https?:\/\/\S+$/i.test(str.trim());
 }
 
 // Named HTML entities commonly found in RSS feeds
@@ -101,15 +119,18 @@ function normalise(items, feed) {
   return items
     .filter(i => i.title)
     .slice(0, MAX_PER_SOURCE)   // ← cap per source
-    .map(item => ({
-      title:    stripHtml(text(item.title)).slice(0, 200),
-      link:     linkHref(item.link) || text(item.guid) || text(item.id) || '',
-      summary:  extractSummary(item),
-      pubDate:  parseDate(item.pubDate || item['dc:date'] || item.updated || item.published),
-      source:   feed.name,
-      category: feed.category,
-      region:   feed.region,
-    }))
+    .map(item => {
+      const rawLink = linkHref(item.link) || text(item.guid) || text(item.id) || '';
+      return {
+        title:    stripHtml(text(item.title)).slice(0, 200),
+        link:     isValidUrl(rawLink) ? rawLink.trim() : '',
+        summary:  extractSummary(item),
+        pubDate:  parseDate(item.pubDate || item['dc:date'] || item.updated || item.published),
+        source:   feed.name,
+        category: feed.category,
+        region:   feed.region,
+      };
+    })
     .filter(a => a.title.length > 3);
 }
 

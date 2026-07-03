@@ -129,13 +129,13 @@ async function telegramLoop() {
 // Don't crash on 409 — just keep looping with backoff
 telegramLoop().catch(err => console.error('❌ TG loop:', err.message));
 
-// ── 30-min Kenya alerts ───────────────────────────────────
-cron.schedule('*/30 * * * *', async () => {
+// ── 2-hourly Kenya + Africa alerts ────────────────────────
+cron.schedule('0 */2 * * *', async () => {
   const ts = new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' });
-  console.log(`\n⏱  [${ts}] 30-min poll...`);
+  console.log(`\n⏱  [${ts}] 2-hourly poll...`);
   try {
     _cache = null;
-    const filtered = filterArticles(await getArticles(), 'kenya');
+    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
     let count = 0;
     for (const [cat, items] of Object.entries(filtered)) {
       const newOnes = await tracker.filterNew(items);
@@ -149,13 +149,13 @@ cron.schedule('*/30 * * * *', async () => {
   } catch (err) { console.error('❌ Poll failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
-// ── 7:00 AM EAT — Kenya digest ────────────────────────────
+// ── 7:00 AM EAT — Kenya + Africa digest ───────────────────
 cron.schedule('0 4 * * *', async () => {
-  console.log('\n📰 Daily Kenya digest...');
+  console.log('\n📰 Daily Kenya + Africa digest...');
   try {
     _cache = null;
-    const filtered = filterArticles(await getArticles(), 'kenya');
-    await broadcastDigest(filtered, null, null, '🇰🇪 Kenya');
+    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
+    await broadcastDigest(filtered, null, null, '🇰🇪🌍 Kenya & Africa');
     await Promise.all(Object.values(filtered).flat().map(a => tracker.isNew(a)));
   } catch (err) { console.error('❌ Kenya digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
@@ -175,7 +175,7 @@ cron.schedule('0 5 * * *', async () => {
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Alerts every 30min | Digests 7AM+8AM EAT`);
+  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Alerts every 2h | Digests 7AM+8AM EAT`);
   if (tracker.isPersistent()) {
     console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
   } else {
@@ -187,7 +187,7 @@ app.listen(PORT, () => {
 
 if (process.env.RUN_ON_START === 'true') {
   (async () => {
-    const filtered = filterArticles(await getArticles(), 'kenya');
-    await broadcastDigest(filtered, null, null, '🇰🇪 Kenya');
+    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
+    await broadcastDigest(filtered, null, null, '🇰🇪🌍 Kenya & Africa');
   })().catch(console.error);
 }

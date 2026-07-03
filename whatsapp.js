@@ -52,8 +52,8 @@ function formatArticle(i, a) {
   const snip = excerpt(a);
   let e = `${i + 1}. *${a.title}*\n   _${a.source} • ${time}_\n`;
   if (snip) e += `   ${snip}\n`;
-  e += `   ${a.link}\n\n`;
-  return e;
+  if (a.link) e += `   ${a.link}\n`;
+  return e + '\n';
 }
 
 async function sendDigest(categorised, recipientPhone = WA_RECIPIENT_PHONE, regionLabel = null) {
@@ -87,7 +87,8 @@ async function sendAlert(article, category, recipientPhone = WA_RECIPIENT_PHONE)
   const snip = excerpt(article);
   await sendText(
     `${meta.emoji} *${meta.label} Alert*\n\n*${article.title}*\n_${article.source} • ${time}_\n` +
-    (snip ? `\n${snip}\n` : '') + `\n${article.link}`,
+    (snip ? `\n${snip}\n` : '') +
+    (article.link ? `\n${article.link}` : ''),
     recipientPhone
   );
 }

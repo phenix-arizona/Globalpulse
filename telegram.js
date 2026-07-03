@@ -50,10 +50,13 @@ async function sendText(text, chatId = CHAT_ID) {
 }
 
 function formatArticle(i, a) {
-  const time = new Date(a.pubDate).toLocaleTimeString('en-KE', { timeZone: 'Africa/Nairobi', timeStyle: 'short' });
-  const snip = excerpt(a);
-  let e = `${i + 1}. <a href="${a.link}">${escapeHtml(a.title)}</a>\n`;
-  e    += `   <i>${escapeHtml(a.source)} • ${time}</i>\n`;
+  const time  = new Date(a.pubDate).toLocaleTimeString('en-KE', { timeZone: 'Africa/Nairobi', timeStyle: 'short' });
+  const snip  = excerpt(a);
+  const title = escapeHtml(a.title);
+  let e = a.link
+    ? `${i + 1}. <a href="${a.link}">${title}</a>\n`
+    : `${i + 1}. ${title}\n`;
+  e += `   <i>${escapeHtml(a.source)} • ${time}</i>\n`;
   if (snip) e += `   ${escapeHtml(snip)}\n`;
   return e + '\n';
 }
@@ -85,18 +88,20 @@ async function sendDigest(categorised, chatId = CHAT_ID, regionLabel = null) {
 
 async function sendAlert(article, category, chatId = CHAT_ID) {
   if (!BOT_TOKEN || !chatId) return;
-  const meta = SECTION_META[category] || { emoji: '📰', label: category };
-  const time = new Date(article.pubDate).toLocaleTimeString('en-KE', { timeZone: 'Africa/Nairobi', timeStyle: 'short' });
-  const snip = excerpt(article);
+  const meta  = SECTION_META[category] || { emoji: '📰', label: category };
+  const time  = new Date(article.pubDate).toLocaleTimeString('en-KE', { timeZone: 'Africa/Nairobi', timeStyle: 'short' });
+  const snip  = excerpt(article);
+  const title = escapeHtml(article.title);
+  const titleLine = article.link ? `<a href="${article.link}">${title}</a>` : title;
   const body =
     `${meta.emoji} <b>${meta.label} Alert</b>\n\n` +
-    `<a href="${article.link}">${escapeHtml(article.title)}</a>\n` +
+    `${titleLine}\n` +
     `<i>${escapeHtml(article.source)} • ${time}</i>` +
     (snip ? `\n\n${escapeHtml(snip)}` : '');
   try {
     await axios.post(`${BASE_URL()}/sendMessage`, {
       chat_id: chatId, text: body, parse_mode: 'HTML',
-      disable_web_page_preview: false,
+      disable_web_page_preview: !article.link,
     });
   } catch (err) {
     console.error(`❌ TG alert: ${err.response?.data?.description || err.message}`);
