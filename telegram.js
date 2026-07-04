@@ -6,8 +6,12 @@
 require('dotenv').config();
 const axios = require('axios');
 
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID   = process.env.TELEGRAM_CHAT_ID;
+const BOT_TOKEN   = process.env.TELEGRAM_BOT_TOKEN;
+const CHAT_ID     = process.env.TELEGRAM_CHAT_ID;
+// A public channel username (e.g. @GlobalPulseNews) or a private
+// channel's numeric ID (e.g. -1001234567890). The bot must be an
+// admin of the channel with "Post Messages" permission.
+const CHANNEL_ID  = process.env.TELEGRAM_CHANNEL_ID || null;
 const BASE_URL  = () => `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 const SECTION_META = {
@@ -159,4 +163,8 @@ async function pollCommands(offset = 0, onCommand) {
   }
 }
 
-module.exports = { sendDigest, sendAlert, sendText, pollCommands };
+function isChannelEnabled() {
+  return !!CHANNEL_ID;
+}
+
+module.exports = { sendDigest, sendAlert, sendText, pollCommands, CHANNEL_ID, isChannelEnabled };
