@@ -73,7 +73,18 @@ const HELP_TEXT =
 // ── Shareable invite message ──────────────────────────────
 // Set TELEGRAM_BOT_USERNAME in .env (without the @) so this
 // generates a real, tappable link instead of a placeholder.
-const BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'YourBotUsername';
+// Sanitized below so it still works even if someone pastes the
+// full link (t.me/xxx, https://t.me/xxx, @xxx) instead of just the bare name.
+function sanitizeBotUsername(raw) {
+  if (!raw) return 'YourBotUsername';
+  return raw
+    .trim()
+    .replace(/^https?:\/\//i, '')
+    .replace(/^t\.me\//i, '')
+    .replace(/^@/, '')
+    .replace(/\/+$/, '');
+}
+const BOT_USERNAME = sanitizeBotUsername(process.env.TELEGRAM_BOT_USERNAME);
 const TG_LINK = `https://t.me/${BOT_USERNAME}`;
 
 const INVITE_TEXT =
