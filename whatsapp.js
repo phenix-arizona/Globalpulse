@@ -32,14 +32,14 @@ function excerpt(article) {
   return raw.length > EXCERPT_LEN ? raw.slice(0, EXCERPT_LEN).replace(/\s\S*$/, '') + '…' : raw;
 }
 
-async function sendText(body, recipientPhone = WA_RECIPIENT_PHONE) {
+async function sendText(body, recipientPhone = WA_RECIPIENT_PHONE, previewUrl = false) {
   if (!WA_PHONE_NUMBER_ID || !WA_ACCESS_TOKEN || !recipientPhone) {
     console.log('[WA]', body); return;
   }
   try {
     await axios.post(API_URL(),
       { messaging_product: 'whatsapp', to: recipientPhone.replace(/\s+/g, ''),
-        type: 'text', text: { preview_url: false, body } },
+        type: 'text', text: { preview_url: previewUrl, body } },
       { headers: { Authorization: `Bearer ${WA_ACCESS_TOKEN}`, 'Content-Type': 'application/json' } }
     );
     console.log(`✅ [WA] Sent to ${recipientPhone}`);
@@ -57,28 +57,37 @@ function formatArticle(i, a) {
   return e + '\n';
 }
 
+/**
+ * Send the digest. Each category's top (newest) story gets sent as
+ * its own message with link preview enabled — WhatsApp will render
+ * a small card for it. The rest of that category's stories follow
+ * as one compact list message with preview off, so the chat doesn't
+ * fill up with dozens of unpredictable preview cards.
+ */
 async function sendDigest(categorised, recipientPhone = WA_RECIPIENT_PHONE, regionLabel = null) {
   const now   = new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi', dateStyle: 'full', timeStyle: 'short' });
   const total = Object.values(categorised).reduce((n, arr) => n + arr.length, 0);
   if (total === 0) { console.log('ℹ  [WA] No articles.'); return; }
 
   const title = regionLabel ? `🌐 *${regionLabel} News Digest*` : `🇰🇪 *Kenya News Digest*`;
-  let current  = `${title}\n${now}\n${total} stories\n${'─'.repeat(30)}\n`;
-  const chunks = [];
+  await sendText(`${title}\n${now}\n${total} stories`, recipientPhone);
+  await new Promise(r => setTimeout(r, 500));
 
   for (const [key, meta] of Object.entries(SECTION_META)) {
     const articles = (categorised[key] || []).slice(0, MAX_PER_SECTION);
     if (!articles.length) continue;
-    let section = `\n${meta.emoji} *${meta.label}*\n`;
-    articles.forEach((a, i) => { section += formatArticle(i, a); });
-    if ((current + section).length > MSG_LIMIT) { chunks.push(current); current = section; }
-    else current += section;
-  }
 
-  if (current.trim()) chunks.push(current);
-  for (const msg of chunks) {
-    await sendText(msg.trim(), recipientPhone);
+    const [top, ...rest] = articles;
+
+    await sendAlert(top, key, recipientPhone);
     await new Promise(r => setTimeout(r, 500));
+
+    if (rest.length) {
+      let list = `${meta.emoji} *${meta.label}* — more\n`;
+      rest.forEach((a, i) => { list += formatArticle(i, a); });
+      await sendText(list.trim(), recipientPhone, false);
+      await new Promise(r => setTimeout(r, 500));
+    }
   }
 }
 
@@ -90,7 +99,8 @@ async function sendAlert(article, category, recipientPhone = WA_RECIPIENT_PHONE)
     `${meta.emoji} *${meta.label} Alert*\n\n*${article.title}*\n_${article.source} • ${time}_\n` +
     (snip ? `\n${snip}\n` : '') +
     (article.link ? `\n${article.link}` : ''),
-    recipientPhone
+    recipientPhone,
+    !!article.link
   );
 }
 

@@ -42,7 +42,11 @@ const HELP_TEXT =
 
 <b>📍 By Region</b>
 /kenya   — 🇰🇪 Kenya
-/africa  — 🌍 Africa
+/nigeria — 🇳🇬 Nigeria
+/ghana   — 🇬🇭 Ghana
+/sa      — 🇿🇦 South Africa
+/uganda  — 🇺🇬 Uganda
+/africa  — 🌍 Africa (all of the above + more)
 /usa     — 🇺🇸 USA
 /europe  — 🇪🇺 Europe
 /china   — 🇨🇳 China
@@ -63,12 +67,32 @@ const HELP_TEXT =
 /youth    — 🧑‍🎓 Youth Affairs &amp; Development
 /tenders  — 📋 IT Tenders (Kenya)
 
+/invite — Share GlobalPulse with a friend
 /help — Show this menu`;
+
+// ── Shareable invite message ──────────────────────────────
+// Set TELEGRAM_BOT_USERNAME in .env (without the @) so this
+// generates a real, tappable link instead of a placeholder.
+const BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || 'YourBotUsername';
+const TG_LINK = `https://t.me/${BOT_USERNAME}`;
+
+const INVITE_TEXT =
+`🌍 <b>Share GlobalPulse</b>
+
+Forward this to anyone who wants global news, jobs, tenders, and more — delivered straight to Telegram or WhatsApp, free.
+
+<b>GlobalPulse</b> — global news, local relevance, real-time.
+🌍 7 regions · 📂 11 topics · ⏱️ alerts every 2h + daily digests
+
+👉 <a href="${TG_LINK}">${TG_LINK}</a>
+Type <code>/start</code> to begin — no signup required.`;
 
 const REGION_CMDS = {
   '/kenya': 'kenya', '/africa': 'africa', '/usa': 'usa',
   '/europe': 'europe', '/eu': 'europe', '/china': 'china',
   '/japan': 'japan', '/korea': 'korea',
+  '/nigeria': 'nigeria', '/ghana': 'ghana',
+  '/southafrica': 'southafrica', '/sa': 'southafrica', '/uganda': 'uganda',
 };
 const TOPIC_CMDS = {
   '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
@@ -109,6 +133,10 @@ async function handleCommand(text, tgChatId = null, waPhone = null) {
     case '/world': {
       const filtered = filterArticles(await getArticles());
       await broadcastDigest(filtered, tgChatId, waPhone, '🌍 World');
+      break;
+    }
+    case '/invite': {
+      if (tgChatId) await sendText(INVITE_TEXT, tgChatId);
       break;
     }
     default:

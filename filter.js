@@ -3,7 +3,7 @@
 //  Startup category added, strict title-anchoring
 // ─────────────────────────────────────────────────────────
 
-const { KEYWORDS } = require('./feeds');
+const { KEYWORDS, AFRICA_SUBREGIONS } = require('./feeds');
 
 const TRUSTED_CATEGORY_FEEDS = new Set([
   'FarmBiz Africa','FarmBiz Africa (cont)','Smart Farmer Kenya',
@@ -146,19 +146,37 @@ function withinWindow(article, category) {
 // For these two categories only, a "global"-tagged article must actually
 // mention the requested region by name to qualify.
 const REGION_LOCALE_KEYWORDS = {
-  kenya:  ['kenya', 'nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret'],
-  africa: ['africa', 'african', 'nigeria', 'ghana', 'uganda', 'tanzania', 'rwanda', 'ethiopia', 'senegal', 'zambia', 'south africa'],
-  usa:    ['united states', 'u.s.', 'usa', 'america', 'washington'],
-  europe: ['europe', 'european union', 'brussels', 'germany', 'france', 'uk ', 'britain', 'spain', 'italy'],
-  china:  ['china', 'chinese', 'beijing', 'shanghai'],
-  japan:  ['japan', 'japanese', 'tokyo'],
-  korea:  ['korea', 'korean', 'seoul'],
+  kenya:       ['kenya', 'nairobi', 'mombasa', 'kisumu', 'nakuru', 'eldoret'],
+  nigeria:     ['nigeria', 'nigerian', 'lagos', 'abuja', 'kano', 'naira'],
+  ghana:       ['ghana', 'ghanaian', 'accra', 'kumasi', 'cedi'],
+  southafrica: ['south africa', 'south african', 'johannesburg', 'cape town', 'pretoria', 'durban', 'rand'],
+  uganda:      ['uganda', 'ugandan', 'kampala', 'shilling'],
+  africa:      ['africa', 'african', 'nigeria', 'ghana', 'uganda', 'tanzania', 'rwanda', 'ethiopia', 'senegal', 'zambia', 'south africa'],
+  usa:         ['united states', 'u.s.', 'usa', 'america', 'washington'],
+  europe:      ['europe', 'european union', 'brussels', 'germany', 'france', 'uk ', 'britain', 'spain', 'italy'],
+  china:       ['china', 'chinese', 'beijing', 'shanghai'],
+  japan:       ['japan', 'japanese', 'tokyo'],
+  korea:       ['korea', 'korean', 'seoul'],
 };
 const REGION_RESTRICTED_CATEGORIES = new Set(['jobs', 'tenders']);
 
+/**
+ * Expand a requested region list so that asking for 'africa' also
+ * matches Nigeria/Ghana/South Africa/Uganda/Kenya-tagged articles —
+ * without this, /africa would only catch pan-continental sources
+ * and miss country-specific ones entirely.
+ */
+function expandRegions(regionList) {
+  if (regionList.includes('africa')) {
+    return [...new Set([...regionList, ...AFRICA_SUBREGIONS])];
+  }
+  return regionList;
+}
+
 function matchesRegion(article, regionList) {
   if (!regionList) return true;
-  return regionList.includes(article.region) || article.region === 'global';
+  const expanded = expandRegions(regionList);
+  return expanded.includes(article.region) || article.region === 'global';
 }
 
 function mentionsRegionLocale(article, regionList) {
@@ -194,7 +212,7 @@ function filterArticles(articles, region = null) {
     // Global job/tender boards only qualify for a region's digest if the
     // posting actually mentions one of the requested regions — otherwise skip it.
     if (regionList && article.region === 'global' && REGION_RESTRICTED_CATEGORIES.has(cat)) {
-      if (!mentionsRegionLocale(article, regionList)) continue;
+      if (!mentionsRegionLocale(article, expandRegions(regionList))) continue;
     }
 
     buckets[cat].push(article);

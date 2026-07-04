@@ -42,7 +42,7 @@ const FEEDS = [
   { name: 'Africa News',            url: 'https://www.africanews.com/feed/',                        category: 'general',    region: 'africa'  },
   { name: 'The Africa Report',      url: 'https://www.theafricareport.com/feed/',                   category: 'general',    region: 'africa'  },
   { name: 'Mail & Guardian Africa', url: 'https://mg.co.za/feed/',                                  category: 'general',    region: 'africa'  },
-  { name: 'Daily Maverick',         url: 'https://www.dailymaverick.co.za/feed/',                   category: 'general',    region: 'africa'  },
+  { name: 'Daily Maverick',         url: 'https://www.dailymaverick.co.za/feed/',                   category: 'general',    region: 'southafrica'  },
 
   // Technology & Startups
   { name: 'TechCabal (Africa)',     url: 'https://techcabal.com/feed/',                             category: 'technology', region: 'africa'  },
@@ -66,6 +66,23 @@ const FEEDS = [
 
   // Jobs
   { name: 'ReliefWeb Jobs Africa',  url: 'https://reliefweb.int/jobs/rss.xml?region=africa',        category: 'jobs',       region: 'africa'  },
+
+  // ── 🇳🇬 Nigeria ────────────────────────────────────────
+  { name: 'Premium Times Nigeria',  url: 'https://www.premiumtimesng.com/feed',                     category: 'general',    region: 'nigeria' },
+  { name: 'Punch Nigeria',          url: 'https://punchng.com/feed/',                               category: 'general',    region: 'nigeria' },
+  { name: 'Nairametrics',           url: 'https://nairametrics.com/feed/',                          category: 'finance',    region: 'nigeria' },
+
+  // ── 🇬🇭 Ghana ──────────────────────────────────────────
+  { name: 'MyJoyOnline',            url: 'https://www.myjoyonline.com/feed/',                       category: 'general',    region: 'ghana'   },
+  { name: 'Citi Newsroom',          url: 'https://citinewsroom.com/feed/',                          category: 'general',    region: 'ghana'   },
+
+  // ── 🇿🇦 South Africa ───────────────────────────────────
+  { name: 'BusinessTech SA',        url: 'https://businesstech.co.za/news/feed/',                   category: 'finance',    region: 'southafrica' },
+  { name: 'MyBroadband SA',         url: 'https://mybroadband.co.za/news/feed/',                    category: 'technology', region: 'southafrica' },
+
+  // ── 🇺🇬 Uganda ─────────────────────────────────────────
+  { name: 'Daily Monitor Uganda',   url: 'https://www.monitor.co.ug/uganda/rss.xml',                category: 'general',    region: 'uganda'  },
+  { name: 'The Independent Uganda', url: 'https://www.independent.co.ug/feed/',                     category: 'general',    region: 'uganda'  },
 
 
   // ══════════════════════════════════════════════════════
@@ -281,17 +298,27 @@ const KEYWORDS = {
 };
 
 // ── Source cap — max articles per feed per fetch ──────────
-const MAX_PER_SOURCE = 5;
+const MAX_PER_SOURCE = 10;
 
 const REGIONS = {
-  kenya:  { emoji: '🇰🇪', label: 'Kenya'       },
-  africa: { emoji: '🌍', label: 'Africa'        },
-  usa:    { emoji: '🇺🇸', label: 'USA'          },
-  europe: { emoji: '🇪🇺', label: 'Europe'       },
-  china:  { emoji: '🇨🇳', label: 'China'        },
-  japan:  { emoji: '🇯🇵', label: 'Japan'        },
-  korea:  { emoji: '🇰🇷', label: 'South Korea'  },
-  global: { emoji: '🌐', label: 'Global'        },
+  kenya:      { emoji: '🇰🇪', label: 'Kenya'        },
+  nigeria:    { emoji: '🇳🇬', label: 'Nigeria'      },
+  ghana:      { emoji: '🇬🇭', label: 'Ghana'        },
+  southafrica:{ emoji: '🇿🇦', label: 'South Africa' },
+  uganda:     { emoji: '🇺🇬', label: 'Uganda'       },
+  africa:     { emoji: '🌍', label: 'Africa'         },
+  usa:        { emoji: '🇺🇸', label: 'USA'          },
+  europe:     { emoji: '🇪🇺', label: 'Europe'       },
+  china:      { emoji: '🇨🇳', label: 'China'        },
+  japan:      { emoji: '🇯🇵', label: 'Japan'        },
+  korea:      { emoji: '🇰🇷', label: 'South Korea'  },
+  global:     { emoji: '🌐', label: 'Global'         },
 };
 
-module.exports = { FEEDS, KEYWORDS, REGIONS, MAX_PER_SOURCE };
+// African country regions that should automatically be included
+// whenever someone asks for the broader 'africa' region — so
+// /africa and the automated Kenya+Africa feed naturally pick up
+// Nigeria/Ghana/South Africa/Uganda content too.
+const AFRICA_SUBREGIONS = ['kenya', 'nigeria', 'ghana', 'southafrica', 'uganda'];
+
+module.exports = { FEEDS, KEYWORDS, REGIONS, MAX_PER_SOURCE, AFRICA_SUBREGIONS };

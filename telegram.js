@@ -62,28 +62,44 @@ function formatArticle(i, a) {
   return e + '\n';
 }
 
+/**
+ * Send the digest. For each category, the top (most recent) story
+ * gets sent as its own message with link preview enabled — this is
+ * what lets Telegram show a rich card and, when the source domain
+ * supports it, an Instant View button. The remaining stories in
+ * that category follow as one compact list message.
+ *
+ * This can't force Instant View on every link — that's decided by
+ * Telegram per-domain (it needs an AMP page or registered IV
+ * template on Telegram's side) — but it maximises the chance for
+ * the story most likely to matter: the newest one per category.
+ */
 async function sendDigest(categorised, chatId = CHAT_ID, regionLabel = null) {
   const now   = new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi', dateStyle: 'full', timeStyle: 'short' });
   const total = Object.values(categorised).reduce((n, arr) => n + arr.length, 0);
   if (total === 0) { console.log('ℹ  [TG] No articles.'); return; }
 
-  const title  = regionLabel ? `${regionLabel} News Digest` : '🇰🇪 Kenya News Digest';
-  let current  = `<b>${title}</b>\n${now}\n${total} stories\n${'─'.repeat(30)}\n`;
-  const chunks = [];
+  const title = regionLabel ? `${regionLabel} News Digest` : '🇰🇪 Kenya News Digest';
+  await sendText(`<b>${title}</b>\n${now}\n${total} stories`, chatId);
+  await new Promise(r => setTimeout(r, 400));
 
   for (const [key, meta] of Object.entries(SECTION_META)) {
     const articles = (categorised[key] || []).slice(0, MAX_PER_SECTION);
     if (!articles.length) continue;
-    let section = `\n${meta.emoji} <b>${meta.label}</b>\n`;
-    articles.forEach((a, i) => { section += formatArticle(i, a); });
-    if ((current + section).length > MSG_LIMIT) { chunks.push(current); current = section; }
-    else current += section;
-  }
 
-  if (current.trim()) chunks.push(current);
-  for (const msg of chunks) {
-    await sendText(msg.trim(), chatId);
+    const [top, ...rest] = articles;
+
+    // Top story — own message, preview enabled (rich card / Instant View if available)
+    await sendAlert(top, key, chatId);
     await new Promise(r => setTimeout(r, 400));
+
+    // Remaining stories in this category — one compact list, no preview clutter
+    if (rest.length) {
+      let list = `${meta.emoji} <b>${meta.label}</b> — more\n`;
+      rest.forEach((a, i) => { list += formatArticle(i, a); });
+      await sendText(list.trim(), chatId);
+      await new Promise(r => setTimeout(r, 400));
+    }
   }
 }
 
