@@ -20,6 +20,7 @@ const SECTION_META = {
   education:  { emoji: '🎓', label: 'Education & Science'   },
   health:     { emoji: '🏥', label: 'Health & Medicine'      },
   youth:      { emoji: '🧑‍🎓', label: 'Youth Affairs & Development' },
+  sports:     { emoji: '⚽', label: 'Sports'                     },
   startup:    { emoji: '🚀', label: 'Startups & Innovation'  },
   tenders:    { emoji: '📋', label: 'IT Tenders (Kenya)'      },
 };

@@ -21,6 +21,8 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'Disrupt Africa','Ventures Africa','WeeTracker','Crunchbase News',
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
+  'Standard Sports Kenya','Capital Sports Kenya','BBC Sport',
+  'Guardian Football','ESPN Cricinfo','ESPN','BBC Sport World Cup',
 ]);
 
 const AGRI_TITLE  = ['farm','farmer','farming','crop','harvest','livestock','poultry','dairy','drought','irrigation','fertilizer','fertiliser','seed','food security','agribusiness','agrotech','maize','wheat','rice','coffee','horticulture','smallholder','agriculture','agricultural','agri','cereal','grain','pesticide','soil health','food production','famine','hunger','crop yield','land reform','food prices'];
@@ -160,6 +162,15 @@ const REGION_LOCALE_KEYWORDS = {
 };
 const REGION_RESTRICTED_CATEGORIES = new Set(['jobs', 'tenders']);
 
+// Some categories are deliberately narrow while the audience is small —
+// Politics and Youth Affairs only make sense as Kenya-specific right now,
+// regardless of which region someone actually asks for (/usa, /world, etc.).
+// Widen this as the audience grows into other countries.
+const CATEGORY_REGION_LOCK = {
+  politics: 'kenya',
+  youth:    'kenya',
+};
+
 /**
  * Expand a requested region list so that asking for 'africa' also
  * matches Nigeria/Ghana/South Africa/Uganda/Kenya-tagged articles —
@@ -208,6 +219,11 @@ function filterArticles(articles, region = null) {
     const cat = categorise(article);
     if (!cat || !validCats.has(cat)) continue;
     if (!withinWindow(article, cat)) continue;
+
+    // Category-level lock — Politics and Youth stay Kenya-only no matter
+    // what region was requested (even /world or /usa won't surface them
+    // for other countries yet).
+    if (CATEGORY_REGION_LOCK[cat] && article.region !== CATEGORY_REGION_LOCK[cat]) continue;
 
     // Global job/tender boards only qualify for a region's digest if the
     // posting actually mentions one of the requested regions — otherwise skip it.

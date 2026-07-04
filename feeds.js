@@ -84,6 +84,15 @@ const FEEDS = [
   { name: 'Daily Monitor Uganda',   url: 'https://www.monitor.co.ug/uganda/rss.xml',                category: 'general',    region: 'uganda'  },
   { name: 'The Independent Uganda', url: 'https://www.independent.co.ug/feed/',                     category: 'general',    region: 'uganda'  },
 
+  // ── ⚽ Sports (Kenya, Europe, Asia, USA, World Cup) ─────
+  { name: 'Standard Sports Kenya',  url: 'https://www.standardmedia.co.ke/rss/sports.php',          category: 'sports',     region: 'kenya'   },
+  { name: 'Capital Sports Kenya',   url: 'https://www.capitalfm.co.ke/sports/feed/',                category: 'sports',     region: 'kenya'   },
+  { name: 'BBC Sport',              url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',         category: 'sports',     region: 'europe'  },
+  { name: 'Guardian Football',      url: 'https://www.theguardian.com/football/rss',                category: 'sports',     region: 'europe'  },
+  { name: 'ESPN Cricinfo',          url: 'https://www.espncricinfo.com/rss/content/story/feeds/0.xml', category: 'sports', region: 'global'  },
+  { name: 'ESPN',                   url: 'https://www.espn.com/espn/rss/news',                      category: 'sports',     region: 'usa'     },
+  { name: 'BBC Sport World Cup',    url: 'https://feeds.bbci.co.uk/sport/football/world-cup/rss.xml', category: 'sports',   region: 'global'  },
+
 
   // ══════════════════════════════════════════════════════
   //  🇺🇸  USA
@@ -294,6 +303,14 @@ const KEYWORDS = {
     'young Kenyans','youth-led','Generation Z','Gen Z','youth council',
     'young entrepreneurs','graduate unemployment','skills for youth',
     'youth internship','youth training','young professionals',
+  ],
+  sports: [
+    'sports','football','soccer','world cup','premier league','la liga',
+    'champions league','bundesliga','serie a','afcon','athletics',
+    'olympics','marathon','rugby','cricket','tennis','boxing',
+    'formula 1','f1','nba','nfl','harambee stars','safari rally',
+    'world athletics','goal','tournament','match','league title',
+    'transfer window','fifa','uefa','world cup qualifier','medal',
   ],
 };
 
