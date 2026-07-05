@@ -202,22 +202,40 @@ cron.schedule('0 4 * * *', async () => {
   } catch (err) { console.error('❌ Kenya digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
-// ── 8:00 AM EAT — Global Tech & Finance ──────────────────
+// ── 8:00 AM EAT onward — full digest for every other region ──
+// Channel subscribers can't type commands (Telegram channels are
+// broadcast-only), so anything not pushed automatically is content
+// they will simply never see. This sends a complete digest — every
+// category that region has, not just tech/finance — for each of
+// USA, Europe, China, Japan, and South Korea, spaced 3 minutes
+// apart so they land as distinct, readable digests rather than
+// one big pile all at once.
+const WORLD_REGIONS = [
+  { region: 'usa',    label: '🇺🇸 USA'          },
+  { region: 'europe', label: '🇪🇺 Europe'       },
+  { region: 'china',  label: '🇨🇳 China'        },
+  { region: 'japan',  label: '🇯🇵 Japan'        },
+  { region: 'korea',  label: '🇰🇷 South Korea'  },
+];
+
 cron.schedule('0 5 * * *', async () => {
-  console.log('\n🌍 Daily global digest...');
+  console.log('\n🌍 Daily world-regions digest...');
   try {
-    const filtered = filterArticles(await getArticles());
-    await broadcastDigest(
-      { technology: filtered.technology, finance: filtered.finance },
-      null, null, '🌍 Global Tech & Finance'
-    );
-  } catch (err) { console.error('❌ Global digest failed:', err.message); }
+    _cache = null;
+    const articles = await getArticles();
+    for (const { region, label } of WORLD_REGIONS) {
+      const filtered = filterArticles(articles, region);
+      await broadcastDigest(filtered, null, null, label);
+      await new Promise(r => setTimeout(r, 3 * 60 * 1000)); // 3 min between regions
+    }
+    console.log('✅ World-regions digest complete.');
+  } catch (err) { console.error('❌ World digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled${isChannelEnabled() ? ' (+ channel)' : ''} | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Alerts every 2h | Digests 7AM+8AM EAT`);
+  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Kenya+Africa alerts every 2h | Full digests 7AM (KE+Africa) & 8AM+ (USA/Europe/China/Japan/Korea)`);
   if (tracker.isPersistent()) {
     console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
   } else {

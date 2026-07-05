@@ -17,7 +17,7 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'University World News Africa','University World News EU',
   'Research Africa','China Dialogue',
   'WHO News','Medical Xpress','STAT News','KFF Health News','Africa CDC',
-  'Konza Technopolis','ICT Authority Kenya','Ajira Digital',
+  'Konza Technopolis',
   'Disrupt Africa','Ventures Africa','WeeTracker','Crunchbase News',
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
