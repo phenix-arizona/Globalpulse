@@ -66,7 +66,8 @@ const HELP_TEXT =
 /edu      — 🎓 Education &amp; Science
 /med      — 🏥 Health &amp; Medicine
 /youth    — 🧑‍🎓 Youth Affairs &amp; Development <i>(Kenya only)</i>
-/sports   — ⚽ Sports (Kenya, Europe, Asia, USA, World Cup)
+/sports   — ⚽ Football, Athletics, Rugby, WRC, F1, Basketball
+/fun      — 🎬 Entertainment &amp; Lifestyle
 /tenders  — 📋 IT Tenders (Kenya)
 
 /invite — Share GlobalPulse with a friend
@@ -109,7 +110,7 @@ const REGION_CMDS = {
 };
 const TOPIC_CMDS = {
   '/politics': 'politics', '/finance': 'finance', '/tech': 'technology',
-  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education', '/med': 'health', '/youth': 'youth', '/sports': 'sports',
+  '/invest': 'investment', '/jobs': 'jobs', '/agri': 'agri', '/startup': 'startup', '/tenders': 'tenders', '/edu': 'education', '/med': 'health', '/youth': 'youth', '/sports': 'sports', '/fun': 'entertainment',
 };
 
 // 10-min article cache

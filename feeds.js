@@ -82,14 +82,19 @@ const FEEDS = [
   { name: 'Daily Monitor Uganda',   url: 'https://www.monitor.co.ug/uganda/rss.xml',                category: 'general',    region: 'uganda'  },
   { name: 'The Independent Uganda', url: 'https://www.independent.co.ug/feed/',                     category: 'general',    region: 'uganda'  },
 
-  // ── ⚽ Sports (Kenya, Europe, Asia, USA, World Cup) ─────
+  // ── ⚽ Sports (Football, Athletics, Rugby, WRC, F1, Basketball) ─
   { name: 'Standard Sports Kenya',  url: 'https://www.standardmedia.co.ke/rss/sports.php',          category: 'sports',     region: 'kenya'   },
   { name: 'Capital Sports Kenya',   url: 'https://www.capitalfm.co.ke/sports/feed/',                category: 'sports',     region: 'kenya'   },
-  { name: 'BBC Sport',              url: 'https://feeds.bbci.co.uk/sport/football/rss.xml',         category: 'sports',     region: 'europe'  },
+  { name: 'BBC Sport',              url: 'https://feeds.bbci.co.uk/sport/rss.xml',                  category: 'sports',     region: 'global'  },
   { name: 'Guardian Football',      url: 'https://www.theguardian.com/football/rss',                category: 'sports',     region: 'europe'  },
-  { name: 'ESPN Cricinfo',          url: 'https://www.espncricinfo.com/rss/content/story/feeds/0.xml', category: 'sports', region: 'global'  },
-  { name: 'ESPN',                   url: 'https://www.espn.com/espn/rss/news',                      category: 'sports',     region: 'usa'     },
+  { name: 'Motorsport.com',         url: 'https://www.motorsport.com/rss/all/news/',                category: 'sports',     region: 'global'  },
+  { name: 'ESPN NBA',               url: 'https://www.espn.com/espn/rss/nba/news',                  category: 'sports',     region: 'usa'     },
   { name: 'BBC Sport World Cup',    url: 'https://feeds.bbci.co.uk/sport/football/world-cup/rss.xml', category: 'sports',   region: 'global'  },
+
+  // ── 🎬 Entertainment & Lifestyle (music, film, fashion) ──
+  { name: 'Pulse Live Kenya',       url: 'https://www.pulselive.co.ke/rss',                         category: 'entertainment', region: 'kenya' },
+  { name: 'Tuko Entertainment',     url: 'https://www.tuko.co.ke/rss/entertainment/',               category: 'entertainment', region: 'kenya' },
+  { name: 'OkayAfrica',             url: 'https://www.okayafrica.com/feed/',                        category: 'entertainment', region: 'africa' },
 
 
   // ══════════════════════════════════════════════════════
@@ -231,6 +236,7 @@ const KEYWORDS = {
     'semiconductor','chip','quantum computing','robot','drone',
     'electric vehicle','EV','OpenAI','GPU','LLM','generative AI',
     'data center','automation','deepfake','space tech','ICT',
+    'undersea cable','submarine cable','internet outage',
   ],
   finance: [
     'stock market','bonds','treasury','GDP','inflation','banking',
@@ -238,6 +244,8 @@ const KEYWORDS = {
     'tax','interest rate','Federal Reserve','Wall Street','recession',
     'trade deficit','NSE','CBK','KRA','shilling','cryptocurrency',
     'bitcoin','IPO market','M-Pesa','economic growth',
+    'remittance','diaspora bond','oil price','crude oil','brent crude',
+    'opec','fuel price','pump price','diesel price','petrol price','jet fuel',
   ],
   investment: [
     'investment','investor','fund','equity','IPO','shares','dividend',
@@ -273,9 +281,10 @@ const KEYWORDS = {
     'agriculture','agricultural','farming','farmer','crop','harvest',
     'livestock','poultry','dairy','drought','irrigation','fertilizer',
     'fertiliser','seed','food security','agribusiness','agrotech',
-    'maize','wheat','rice','coffee','horticulture','smallholder',
+    'maize','wheat','rice','coffee','tea','horticulture','smallholder',
     'food production','famine','hunger','crop yield','land reform',
     'food prices','grain','soil health','pesticide',
+    'coffee auction','tea auction','flower export','cut flower',
   ],
   education: [
     'education','school','university','college','student','research',
@@ -305,10 +314,21 @@ const KEYWORDS = {
   sports: [
     'sports','football','soccer','world cup','premier league','la liga',
     'champions league','bundesliga','serie a','afcon','athletics',
-    'olympics','marathon','rugby','cricket','tennis','boxing',
-    'formula 1','f1','nba','nfl','harambee stars','safari rally',
-    'world athletics','goal','tournament','match','league title',
+    'olympics','marathon','rugby','tennis','boxing',
+    'formula 1','f1 grand prix','nba','basketball','harambee stars',
+    'safari rally','wrc','world rally championship','rally raid',
+    'world athletics','diamond league','kenyan runners','steeplechase',
+    'cross country','goal','tournament','match','league title',
     'transfer window','fifa','uefa','world cup qualifier','medal',
+    'kenya sevens','shujaa','grand prix','pole position',
+  ],
+  entertainment: [
+    'entertainment','celebrity','music','album','concert','awards show',
+    'red carpet','film','movie','premiere','tv drama','tv series',
+    'fashion week','fashion','runway','designer','fashion trend',
+    'gengetone','bongo flava','afrobeats','sauti sol','kenyan music',
+    'kisima awards','groove awards','riverwood','nollywood','bollywood',
+    'netflix','box office','soundtrack','artiste','musician','singer',
   ],
 };
 

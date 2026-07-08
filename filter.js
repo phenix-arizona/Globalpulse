@@ -22,10 +22,25 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
   'Standard Sports Kenya','Capital Sports Kenya','BBC Sport',
-  'Guardian Football','ESPN Cricinfo','ESPN','BBC Sport World Cup',
+  'Guardian Football','Motorsport.com','ESPN NBA','BBC Sport World Cup',
+  'Pulse Live Kenya','Tuko Entertainment','OkayAfrica',
 ]);
 
-const AGRI_TITLE  = ['farm','farmer','farming','crop','harvest','livestock','poultry','dairy','drought','irrigation','fertilizer','fertiliser','seed','food security','agribusiness','agrotech','maize','wheat','rice','coffee','horticulture','smallholder','agriculture','agricultural','agri','cereal','grain','pesticide','soil health','food production','famine','hunger','crop yield','land reform','food prices'];
+const AGRI_TITLE  = [
+  'farm','farmer','farming','crop','harvest','livestock','poultry','dairy',
+  'drought','irrigation','fertilizer','fertiliser','seed','food security',
+  'agribusiness','agrotech','horticulture','smallholder','agriculture',
+  'agricultural','agri','cereal','grain','pesticide','soil health',
+  'food production','famine','hunger','crop yield','land reform',
+  'food prices','coffee auction','tea auction','flower export','cut flower',
+  // Cash crops
+  'coffee','tea','sugarcane','sugar cane','cotton','pyrethrum','macadamia',
+  'cashew nut','sisal','tobacco','sunflower','avocado','miraa','khat',
+  // Food/staple crops
+  'maize','wheat','rice','beans','potato','potatoes','sorghum','millet',
+  'cassava','banana','bananas','mango','mangoes','tomato','tomatoes',
+  'onion','onions','groundnut','groundnuts',
+];
 const JOB_TITLE = [
   // General hiring
   'job opening','job vacancy','vacancies','hiring','recruitment','career',
@@ -53,10 +68,18 @@ const JOB_TITLE = [
   'scholarship','scholarships','bursary','bursaries','fully funded',
   'fellowship','fellowships','grant opportunity','study abroad',
   'exchange program','funded masters','funded phd','tuition waiver',
+
+  // Diaspora & foreign employment/migration
+  'visa lottery','diversity visa','dv lottery','work visa','h-2b visa',
+  'migrant worker','migrant workers','labour migration','domestic worker',
+  'domestic workers','overseas employment','gulf labour','gulf labor',
+  'kafala system','diaspora worker','kenyans abroad','workers abroad',
 ];
 const EDU_TITLE   = ['education','school','university','college','research','scholarship','curriculum','professor','e-learning','online course','STEM','EdTech','vocational','PhD','discovery','academic'];
 const HEALTH_TITLE = ['health','hospital','clinic','disease','outbreak','vaccine','vaccination','pandemic','epidemic','WHO ','medicine','medical','doctor','nurse','patient','surgery','pharma','clinical trial','mental health','maternal health','malaria','HIV','tuberculosis','cancer','diabetes','nutrition','public health','NHIF','SHA ','biotech','telemedicine','epidemiology'];
 const YOUTH_TITLE  = ['youth','young people','youth affairs','youth empowerment','youth development','youth fund','youth employment','youth policy','youth entrepreneurship','youth program','youth initiative','National Youth Service','NYS ','Ajira Digital','young innovators','young Kenyans','youth-led','youth council','young entrepreneurs','graduate unemployment','youth internship','youth training'];
+const SPORTS_TITLE = ['football','soccer','world cup','premier league','la liga','champions league','bundesliga','serie a','afcon','athletics','olympics','marathon','rugby','tennis','boxing','formula 1','f1 grand prix','nba','basketball','harambee stars','safari rally','wrc','world rally championship','rally raid','world athletics','diamond league','steeplechase','cross country','tournament','league title','transfer window','fifa','uefa','kenya sevens','shujaa','grand prix','pole position'];
+const ENTERTAINMENT_TITLE = ['entertainment','celebrity','music','album','concert','awards show','red carpet','film','movie','premiere','tv drama','tv series','fashion week','fashion','runway','designer','gengetone','bongo flava','afrobeats','sauti sol','kenyan music','kisima awards','groove awards','riverwood','nollywood','bollywood','netflix','box office','soundtrack','artiste','musician','singer'];
 const START_TITLE = ['startup','founder','launch','seed funding','pre-seed','incubator','accelerator','pitch','MVP','product launch','scale-up','raise','funding round','entrepreneur','Y Combinator','Techstars','demo day'];
 
 // IT-specific tender keywords — narrows the broad "tender" feed to IT/tech tenders
@@ -102,6 +125,8 @@ function categorise(article) {
   if (titleMatches(title, EDU_TITLE))    return 'education';
   if (titleMatches(title, HEALTH_TITLE)) return 'health';
   if (titleMatches(title, YOUTH_TITLE))  return 'youth';
+  if (titleMatches(title, SPORTS_TITLE)) return 'sports';
+  if (titleMatches(title, ENTERTAINMENT_TITLE)) return 'entertainment';
 
   // Tenders: must mention tender/RFP AND be IT-related to qualify
   if (titleMatches(title, TENDER_TITLE) && titleMatches(combined, IT_TENDER_TITLE)) return 'tenders';
@@ -184,10 +209,52 @@ function expandRegions(regionList) {
   return regionList;
 }
 
+/**
+ * Stories that "serve a typical Kenyan" even when they're not about
+ * Kenya at all — the article can be tagged usa/europe/china/etc. and
+ * still belong in the Kenya feed if it matches one of these patterns.
+ * Based on genuine, sustained Kenyan public interest: diaspora labour
+ * conditions abroad, remittances, global fuel/commodity prices that
+ * set local pump prices and farmgate income, and infrastructure
+ * events (like undersea cable cuts) that have directly disrupted
+ * Kenyan daily life before.
+ */
+const KENYA_RELEVANCE_KEYWORDS = [
+  // Diaspora & migration
+  'kenyan diaspora', 'diaspora remittance', 'remittance inflow',
+  'dv lottery', 'diversity visa', 'us visa lottery', 'h-2b visa',
+  'uk work visa', 'gulf labour', 'gulf labor', 'domestic workers abroad',
+  'saudi arabia workers', 'qatar workers', 'uae workers', 'kafala system',
+  'migrant workers abuse', 'diaspora bond',
+
+  // Global commodities & fuel (directly sets Kenyan pump/farmgate prices)
+  'crude oil price', 'brent crude', 'opec', 'fuel prices', 'pump price',
+  'diesel price', 'petrol price', 'coffee auction', 'coffee prices',
+  'tea auction', 'tea prices', 'horticulture export', 'flower export',
+
+  // Infrastructure events with direct Kenyan impact
+  'undersea cable', 'submarine cable', 'internet outage east africa',
+
+  // Aviation (Kenya Airways exposure to global costs)
+  'kenya airways', 'jet fuel price',
+];
+
+function isKenyaRelevant(article) {
+  const haystack = `${article.title} ${article.summary}`.toLowerCase();
+  return KENYA_RELEVANCE_KEYWORDS.some(kw => haystack.includes(kw.toLowerCase()));
+}
+
 function matchesRegion(article, regionList) {
   if (!regionList) return true;
   const expanded = expandRegions(regionList);
-  return expanded.includes(article.region) || article.region === 'global';
+  if (expanded.includes(article.region) || article.region === 'global') return true;
+
+  // Let a globally-relevant story into the Kenya feed even if it's
+  // tagged to a different region entirely (e.g. a US visa policy
+  // story, or a Brent crude price report) — see isKenyaRelevant().
+  if (expanded.includes('kenya') && isKenyaRelevant(article)) return true;
+
+  return false;
 }
 
 function mentionsRegionLocale(article, regionList) {
