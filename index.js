@@ -172,13 +172,18 @@ async function telegramLoop() {
 // Don't crash on 409 — just keep looping with backoff
 telegramLoop().catch(err => console.error('❌ TG loop:', err.message));
 
-// ── 2-hourly Kenya + Africa alerts ────────────────────────
+// ── 2-hourly breaking alerts ───────────────────────────────
+// No region argument = Kenya-scoped for most categories (Kenya-tagged
+// or genuinely Kenya-relevant, wherever it was written), but fully
+// global for Sports/Technology/Education — see GLOBAL_OPEN_CATEGORIES
+// in filter.js. This replaced a separate per-region push loop that
+// was generating too much volume as categories grew.
 cron.schedule('0 */2 * * *', async () => {
   const ts = new Date().toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' });
   console.log(`\n⏱  [${ts}] 2-hourly poll...`);
   try {
     _cache = null;
-    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
+    const filtered = filterArticles(await getArticles());
     let count = 0;
     for (const [cat, items] of Object.entries(filtered)) {
       const newOnes = await tracker.filterNew(items);
@@ -192,51 +197,21 @@ cron.schedule('0 */2 * * *', async () => {
   } catch (err) { console.error('❌ Poll failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
-// ── 7:00 AM EAT — Kenya + Africa digest ───────────────────
+// ── 7:00 AM EAT — daily digest ────────────────────────────
 cron.schedule('0 4 * * *', async () => {
-  console.log('\n📰 Daily Kenya + Africa digest...');
+  console.log('\n📰 Daily digest...');
   try {
     _cache = null;
-    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
-    await broadcastDigest(filtered, null, null, '🇰🇪🌍 Kenya & Africa');
+    const filtered = filterArticles(await getArticles());
+    await broadcastDigest(filtered, null, null, '🇰🇪 GlobalPulse Daily');
     await Promise.all(Object.values(filtered).flat().map(a => tracker.isNew(a)));
-  } catch (err) { console.error('❌ Kenya digest failed:', err.message); }
-}, { timezone: 'Africa/Nairobi' });
-
-// ── 8:00 AM EAT onward — full digest for every other region ──
-// Channel subscribers can't type commands (Telegram channels are
-// broadcast-only), so anything not pushed automatically is content
-// they will simply never see. This sends a complete digest — every
-// category that region has, not just tech/finance — for each of
-// USA, Europe, China, Japan, and South Korea, spaced 3 minutes
-// apart so they land as distinct, readable digests rather than
-// one big pile all at once.
-const WORLD_REGIONS = [
-  { region: 'usa',    label: '🇺🇸 USA'          },
-  { region: 'europe', label: '🇪🇺 Europe'       },
-  { region: 'china',  label: '🇨🇳 China'        },
-  { region: 'japan',  label: '🇯🇵 Japan'        },
-  { region: 'korea',  label: '🇰🇷 South Korea'  },
-];
-
-cron.schedule('0 5 * * *', async () => {
-  console.log('\n🌍 Daily world-regions digest...');
-  try {
-    _cache = null;
-    const articles = await getArticles();
-    for (const { region, label } of WORLD_REGIONS) {
-      const filtered = filterArticles(articles, region);
-      await broadcastDigest(filtered, null, null, label);
-      await new Promise(r => setTimeout(r, 3 * 60 * 1000)); // 3 min between regions
-    }
-    console.log('✅ World-regions digest complete.');
-  } catch (err) { console.error('❌ World digest failed:', err.message); }
+  } catch (err) { console.error('❌ Daily digest failed:', err.message); }
 }, { timezone: 'Africa/Nairobi' });
 
 app.listen(PORT, () => {
   console.log(`\n🇰🇪 GlobalPulse Bot v5.0 on port ${PORT}`);
   console.log(`📱 Telegram: enabled${isChannelEnabled() ? ' (+ channel)' : ''} | 💬 WhatsApp: ${waEnabled() ? 'enabled' : 'disabled'}`);
-  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Kenya+Africa alerts every 2h | Full digests 7AM (KE+Africa) & 8AM+ (USA/Europe/China/Japan/Korea)`);
+  console.log(`🌍 ${Object.keys(REGION_CMDS).length > 0 ? new Set(Object.values(REGION_CMDS)).size : 0} regions | ${Object.keys(KEYWORDS).length} topics | Alerts every 2h + daily digest at 7AM EAT | Kenya-scoped + global Sports/Tech/Education`);
   if (tracker.isPersistent()) {
     console.log(`💾 Storage: Upstash Redis (persistent — survives redeploys)\n`);
   } else {
@@ -248,7 +223,7 @@ app.listen(PORT, () => {
 
 if (process.env.RUN_ON_START === 'true') {
   (async () => {
-    const filtered = filterArticles(await getArticles(), ['kenya', 'africa']);
-    await broadcastDigest(filtered, null, null, '🇰🇪🌍 Kenya & Africa');
+    const filtered = filterArticles(await getArticles());
+    await broadcastDigest(filtered, null, null, '🇰🇪 GlobalPulse Daily');
   })().catch(console.error);
 }

@@ -187,14 +187,15 @@ const REGION_LOCALE_KEYWORDS = {
 };
 const REGION_RESTRICTED_CATEGORIES = new Set(['jobs', 'tenders']);
 
-// Some categories are deliberately narrow while the audience is small —
-// Politics and Youth Affairs only make sense as Kenya-specific right now,
-// regardless of which region someone actually asks for (/usa, /world, etc.).
-// Widen this as the audience grows into other countries.
-const CATEGORY_REGION_LOCK = {
-  politics: 'kenya',
-  youth:    'kenya',
-};
+// Sports, Technology, and Education/Research stay fully global — a
+// Kenyan audience genuinely wants Premier League scores, Silicon
+// Valley news, and international research regardless of any Kenya
+// connection. Every other category is Kenya-scoped: the story must
+// either be tagged region:'kenya', or be a global/other-region story
+// that genuinely impacts Kenyans (see isKenyaRelevant() below) — it
+// doesn't matter where the article was written, only whether it
+// affects Kenya. Widen this as the audience grows into other countries.
+const GLOBAL_OPEN_CATEGORIES = new Set(['sports', 'technology', 'education']);
 
 /**
  * Expand a requested region list so that asking for 'africa' also
@@ -276,21 +277,30 @@ function mentionsRegionLocale(article, regionList) {
  *   combine several (e.g. ['kenya','africa'] for Kenya's automated feed).
  */
 function filterArticles(articles, region = null) {
-  const regionList = region ? (Array.isArray(region) ? region : [region]) : null;
-  const validCats   = new Set(Object.keys(KEYWORDS));
-  const buckets     = Object.fromEntries([...validCats].map(c => [c, []]));
+  const regionList   = region ? (Array.isArray(region) ? region : [region]) : null;
+  const validCats     = new Set(Object.keys(KEYWORDS));
+  const buckets       = Object.fromEntries([...validCats].map(c => [c, []]));
+  // Is Kenya actually part of what's being asked for? True when no
+  // specific region was requested at all (e.g. the automated push,
+  // or /world) — a bare request defaults to "the world as it matters
+  // to a Kenyan". False when someone asks for a single other region
+  // like /usa — Kenya-scoped categories then correctly return empty,
+  // leaving only that region's real sports/tech/education content.
+  const kenyaInScope = !regionList || expandRegions(regionList).includes('kenya');
 
   for (const article of articles) {
-    if (!matchesRegion(article, regionList)) continue;
-
     const cat = categorise(article);
     if (!cat || !validCats.has(cat)) continue;
     if (!withinWindow(article, cat)) continue;
 
-    // Category-level lock — Politics and Youth stay Kenya-only no matter
-    // what region was requested (even /world or /usa won't surface them
-    // for other countries yet).
-    if (CATEGORY_REGION_LOCK[cat] && article.region !== CATEGORY_REGION_LOCK[cat]) continue;
+    if (GLOBAL_OPEN_CATEGORIES.has(cat)) {
+      // Fully open — respect whatever region scope was actually requested.
+      if (!matchesRegion(article, regionList)) continue;
+    } else {
+      // Kenya-scoped — regardless of which region was requested.
+      if (!kenyaInScope) continue;
+      if (article.region !== 'kenya' && !isKenyaRelevant(article)) continue;
+    }
 
     // Global job/tender boards only qualify for a region's digest if the
     // posting actually mentions one of the requested regions — otherwise skip it.
