@@ -82,14 +82,13 @@ const FEEDS = [
   { name: 'Daily Monitor Uganda',   url: 'https://www.monitor.co.ug/uganda/rss.xml',                category: 'general',    region: 'uganda'  },
   { name: 'The Independent Uganda', url: 'https://www.independent.co.ug/feed/',                     category: 'general',    region: 'uganda'  },
 
-  // ── ⚽ Sports (Football, Athletics, Rugby, WRC, F1, Basketball) ─
+  // ── ⚽ Sports (Football, Athletics, Rugby, WRC, Basketball) ─
   { name: 'Standard Sports Kenya',  url: 'https://www.standardmedia.co.ke/rss/sports.php',          category: 'sports',     region: 'kenya'   },
   { name: 'Capital Sports Kenya',   url: 'https://www.capitalfm.co.ke/sports/feed/',                category: 'sports',     region: 'kenya'   },
   { name: 'BBC Sport',              url: 'https://feeds.bbci.co.uk/sport/rss.xml',                  category: 'sports',     region: 'global'  },
   { name: 'Guardian Football',      url: 'https://www.theguardian.com/football/rss',                category: 'sports',     region: 'europe'  },
   { name: 'Motorsport.com',         url: 'https://www.motorsport.com/rss/all/news/',                category: 'sports',     region: 'global'  },
   { name: 'ESPN NBA',               url: 'https://www.espn.com/espn/rss/nba/news',                  category: 'sports',     region: 'usa'     },
-  { name: 'BBC Sport World Cup',    url: 'https://feeds.bbci.co.uk/sport/football/world-cup/rss.xml', category: 'sports',   region: 'global'  },
 
   // ── 🎬 Entertainment & Lifestyle (music, film, fashion) ──
   { name: 'Pulse Live Kenya',       url: 'https://www.pulselive.co.ke/rss',                         category: 'entertainment', region: 'kenya' },
@@ -312,15 +311,15 @@ const KEYWORDS = {
     'youth internship','youth training','young professionals',
   ],
   sports: [
-    'sports','football','soccer','world cup','premier league','la liga',
+    'sports','football','soccer','premier league','la liga',
     'champions league','bundesliga','serie a','afcon','athletics',
     'olympics','marathon','rugby','tennis','boxing',
-    'formula 1','f1 grand prix','nba','basketball','harambee stars',
+    'nba','basketball','harambee stars',
     'safari rally','wrc','world rally championship','rally raid',
     'world athletics','diamond league','kenyan runners','steeplechase',
-    'cross country','goal','tournament','match','league title',
-    'transfer window','fifa','uefa','world cup qualifier','medal',
-    'kenya sevens','shujaa','grand prix','pole position',
+    'cross country','league title',
+    'transfer window','uefa',
+    'kenya sevens','shujaa',
   ],
   entertainment: [
     'entertainment','celebrity','music','album','concert','awards show',

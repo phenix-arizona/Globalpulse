@@ -21,9 +21,19 @@ const TRUSTED_CATEGORY_FEEDS = new Set([
   'Disrupt Africa','Ventures Africa','WeeTracker','Crunchbase News',
   'Product Hunt','Hacker News','TechNode','KrASIA','Sifted','EU Startups',
   'Nikkei Business','Inc Magazine','Fast Company',
-  'Standard Sports Kenya','Capital Sports Kenya','BBC Sport',
-  'Guardian Football','Motorsport.com','ESPN NBA','BBC Sport World Cup',
+  'Standard Sports Kenya','Capital Sports Kenya',
+  'Guardian Football','ESPN NBA',
   'Pulse Live Kenya','Tuko Entertainment','OkayAfrica',
+]);
+
+// Feeds that aggregate many different disciplines/topics under one
+// RSS feed — their declared category can't be blindly trusted per
+// article. BBC Sport covers football, cricket, golf, snooker, etc.
+// all in one feed; Motorsport.com covers F1, WRC, MotoGP, etc.
+// These require an actual keyword match to be accepted into a
+// category rather than falling back to the feed's overall label.
+const BROAD_MULTI_TOPIC_FEEDS = new Set([
+  'BBC Sport', 'Motorsport.com',
 ]);
 
 const AGRI_TITLE  = [
@@ -78,7 +88,7 @@ const JOB_TITLE = [
 const EDU_TITLE   = ['education','school','university','college','research','scholarship','curriculum','professor','e-learning','online course','STEM','EdTech','vocational','PhD','discovery','academic'];
 const HEALTH_TITLE = ['health','hospital','clinic','disease','outbreak','vaccine','vaccination','pandemic','epidemic','WHO ','medicine','medical','doctor','nurse','patient','surgery','pharma','clinical trial','mental health','maternal health','malaria','HIV','tuberculosis','cancer','diabetes','nutrition','public health','NHIF','SHA ','biotech','telemedicine','epidemiology'];
 const YOUTH_TITLE  = ['youth','young people','youth affairs','youth empowerment','youth development','youth fund','youth employment','youth policy','youth entrepreneurship','youth program','youth initiative','National Youth Service','NYS ','Ajira Digital','young innovators','young Kenyans','youth-led','youth council','young entrepreneurs','graduate unemployment','youth internship','youth training'];
-const SPORTS_TITLE = ['football','soccer','world cup','premier league','la liga','champions league','bundesliga','serie a','afcon','athletics','olympics','marathon','rugby','tennis','boxing','formula 1','f1 grand prix','nba','basketball','harambee stars','safari rally','wrc','world rally championship','rally raid','world athletics','diamond league','steeplechase','cross country','tournament','league title','transfer window','fifa','uefa','kenya sevens','shujaa','grand prix','pole position'];
+const SPORTS_TITLE = ['football','soccer','premier league','la liga','champions league','bundesliga','serie a','afcon','athletics','olympics','marathon','rugby','tennis','boxing','nba','basketball','harambee stars','safari rally','wrc','world rally championship','rally raid','world athletics','diamond league','steeplechase','cross country','league title','transfer window','uefa','kenya sevens','shujaa'];
 const ENTERTAINMENT_TITLE = ['entertainment','celebrity','music','album','concert','awards show','red carpet','film','movie','premiere','tv drama','tv series','fashion week','fashion','runway','designer','gengetone','bongo flava','afrobeats','sauti sol','kenyan music','kisima awards','groove awards','riverwood','nollywood','bollywood','netflix','box office','soundtrack','artiste','musician','singer'];
 const START_TITLE = ['startup','founder','launch','seed funding','pre-seed','incubator','accelerator','pitch','MVP','product launch','scale-up','raise','funding round','entrepreneur','Y Combinator','Techstars','demo day'];
 
@@ -138,6 +148,13 @@ function categorise(article) {
   if (titleMatches(title, KEYWORDS.finance)    || countMatches(combined, KEYWORDS.finance)    >= 2) return 'finance';
   if (titleMatches(title, KEYWORDS.investment) || countMatches(combined, KEYWORDS.investment) >= 2) return 'investment';
   if (titleMatches(title, KEYWORDS.politics))   return 'politics';
+
+  // Broad, multi-discipline aggregator feeds (e.g. BBC Sport covers
+  // football AND cricket AND golf AND snooker in one feed) can't be
+  // trusted to have their declared category apply to every article —
+  // require an actual keyword match for these, don't blindly fall
+  // back to the feed's tag like we do for genuinely single-topic feeds.
+  if (BROAD_MULTI_TOPIC_FEEDS.has(article.source)) return null;
 
   return article.category || null;
 }
